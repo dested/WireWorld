@@ -30,7 +30,7 @@ namespace WireWorldWindows
             picFront.Paint += PicFront_Paint;
 
             Timer t = new Timer();
-            t.Interval = 16;
+            t.Interval = 1;
             t.Tick += (a, b) =>
             {
                 picFront.Refresh();
@@ -235,8 +235,8 @@ namespace WireWorldWindows
             var headsGrid = boardState.HeadsGrid;
             var tailsGrid = boardState.TailsGrid;
             var newHeadsGrid = newBoardState.HeadsGrid;
-
-//            unchecked
+//            int _1count, _2count, _3count, _4count, _5count, _6count = 0;
+            //            unchecked
             {
 
                 var coppers = Board.Coppers;
@@ -248,36 +248,119 @@ namespace WireWorldWindows
                     for (int i = 0, posLength = positions.Length; i < posLength; i++)
                     {
                         int copperStateIndex = positions[i];
+                        //if position is copper
                         if (!tailsGrid[copperStateIndex] && !headsGrid[copperStateIndex] && !newHeadsGrid[copperStateIndex])
                         {
                             int[] states = coppers[copperStateIndex];
                             int headNeighbors = 0;
-                            for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
+                            switch (states.Length)
                             {
-                                if (headsGrid[states[ind2]])
-                                {
-                                    headNeighbors++;
-                                    if (headNeighbors == 3)
+                                case 1:
+//                                    _1count++;
+                                    if (headsGrid[states[0]])
                                     {
-                                        headNeighbors = 0;
-                                        break;
+                                        goto good;
                                     }
-                                }
+                                    break;
+
+                                case 2:
+//                                    _2count++;
+                                    if (headsGrid[states[0]] || headsGrid[states[1]])
+                                    {
+                                        goto good;
+                                    }
+                                    break;
+                                case 3:
+//                                    _3count++;
+                                    var s0 = headsGrid[states[0]];
+                                    var s1 = headsGrid[states[1]];
+                                    var s2 = headsGrid[states[2]];
+                                    if (s0 ^ s1 || s0 ^ s2)
+                                    {
+                                        goto good;
+                                    }
+                                    break;
+                                case 4:
+//                                    _4count++;
+                                    for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
+                                    {
+                                        if (headsGrid[states[ind2]])
+                                        {
+                                            headNeighbors++;
+                                            if (headNeighbors == 3)
+                                            {
+                                                headNeighbors = 0;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (headNeighbors > 0)
+                                    {
+                                        goto good;
+                                    }
+                                    break;
+                                case 5:
+//                                    _5count++;
+                                    for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
+                                    {
+                                        if (headsGrid[states[ind2]])
+                                        {
+                                            headNeighbors++;
+                                            if (headNeighbors == 3)
+                                            {
+                                                headNeighbors = 0;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (headNeighbors > 0)
+                                    {
+                                        goto good;
+                                    }
+                                    break;
+                                case 6:
+//                                    _6count++;
+                                    for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
+                                    {
+
+                                        if (headsGrid[states[ind2]])
+                                        {
+                                            headNeighbors++;
+                                            if (headNeighbors == 3)
+                                            {
+                                                headNeighbors = 0;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (headNeighbors > 0)
+                                    {
+                                        goto good;
+                                    }
+                                    break;
+                                default:
+                                    throw new Exception("no");
                             }
-                            if (headNeighbors > 0)
-                            {
-                                newBoardState.HeadsArray[newBoardState.HeadsArrayLength++] = copperStateIndex;
-                                newHeadsGrid[copperStateIndex] = true;
-                            }
+                            goto bad;
+
+                            good:
+                            newBoardState.HeadsArray[newBoardState.HeadsArrayLength++] = copperStateIndex;
+                            newHeadsGrid[copperStateIndex] = true;
+
+                            bad:;
                         }
                     }
                 }
+
+          
+
 
                 newBoardState.TailsArray = collection;
                 newBoardState.TailsArrayLength = boardState.HeadsArrayLength;
                 newBoardState.TailsGrid = headsGrid;
             }
 
+//            Debug.WriteLine($"{_1count} {_2count} {_3count} {_4count} {_5count} {_6count}");
             return newBoardState;
         }
 
@@ -442,7 +525,7 @@ namespace WireWorldWindows
         private static int[] SwitchArrayHead1;
         private static int[] SwitchArrayHead2;
         private static int[] SwitchArrayHead3;
-        public static int EducatedHeadCount { get; set; }
+        public static int EducatedHeadCount ;
 
         public static void SetupArraySwitch()
         {

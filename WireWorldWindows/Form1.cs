@@ -19,15 +19,21 @@ namespace WireWorldWindows
 
         public Form1()
         {
-            this.SetStyle(
-         ControlStyles.UserPaint |
-         ControlStyles.AllPaintingInWmPaint |
-         ControlStyles.DoubleBuffer, true);
+            this.SetStyle(ControlStyles.UserPaint |ControlStyles.AllPaintingInWmPaint |ControlStyles.DoubleBuffer, true);
 
             InitializeComponent();
             this.p = new Programa();
             p.Start(picFront);
+            picFront.Width = picBack.Width = (int) (Board.BoardWidth * Programa.magnify);
+            picFront.Height = picBack.Height = (int) (Board.BoardHeight * Programa.magnify);
+
             picFront.Paint += PicFront_Paint;
+            picFront.BackColor = Color.Transparent;
+
+            picBack.Paint += PicBackPaint1;
+            
+
+            picFront.Parent = picBack;
 
             Timer t = new Timer();
             t.Interval = 1;
@@ -36,6 +42,12 @@ namespace WireWorldWindows
                 picFront.Refresh();
             };
             t.Start();
+        }
+
+        private void PicBackPaint1(object sender, PaintEventArgs e)
+        {
+            this.p.drawBack(e.Graphics);
+
         }
 
         private void PicFront_Paint(object sender, PaintEventArgs e)
@@ -52,7 +64,7 @@ namespace WireWorldWindows
     {
 
 
-        public static int magnify = 1;
+        public static float magnify = 1f;
         public static BoardState boardState = null;
         public static string ticker = "";
         public void Start(PictureBox picFront)
@@ -99,14 +111,14 @@ namespace WireWorldWindows
 
         public void drawBack(Graphics context)
         {
-            context.FillRectangle(new SolidBrush(Color.Black), new Rectangle(0, 0, Board.BoardWidth * magnify, Board.BoardHeight * magnify));
+            context.FillRectangle(new SolidBrush(Color.Black), 0, 0, Board.BoardWidth * magnify, Board.BoardHeight * magnify);
             for (int y = 0; y < Board.BoardHeight; y++)
             {
                 for (int x = 0; x < Board.BoardWidth; x++)
                 {
                     if (Board.CopperGrid[x + y * Board.BoardWidth])
                     {
-                        context.FillRectangle(copper, new Rectangle(x * magnify, y * magnify, magnify, magnify));
+                        context.FillRectangle(copper, x * magnify, y * magnify, magnify, magnify);
                     }
                 }
             }
@@ -117,17 +129,16 @@ namespace WireWorldWindows
 
         public void drawFront(Graphics context, BoardState boardState)
         {
-            drawBack(context);
             var heads = boardState.HeadsArray;
             var tails = boardState.TailsArray;
 
             for (int index = 0, headLength = boardState.HeadsArrayLength; index < headLength; index++)
             {
-                context.FillRectangle(head, new Rectangle(StatePosition.GetX(heads[index]) * magnify, StatePosition.GetY(heads[index]) * magnify, magnify, magnify));
+                context.FillRectangle(head, StatePosition.GetX(heads[index]) * magnify, StatePosition.GetY(heads[index]) * magnify, magnify, magnify);
             }
             for (int index = 0, tailLength = boardState.TailsArrayLength; index < tailLength; index++)
             {
-                context.FillRectangle(tail, new Rectangle(StatePosition.GetX(tails[index]) * magnify, StatePosition.GetY(tails[index]) * magnify, magnify, magnify));
+                context.FillRectangle(tail, StatePosition.GetX(tails[index]) * magnify, StatePosition.GetY(tails[index]) * magnify, magnify, magnify);
             }
         }
 
@@ -235,7 +246,7 @@ namespace WireWorldWindows
             var headsGrid = boardState.HeadsGrid;
             var tailsGrid = boardState.TailsGrid;
             var newHeadsGrid = newBoardState.HeadsGrid;
-//            int _1count, _2count, _3count, _4count, _5count, _6count = 0;
+            //            int _1count, _2count, _3count, _4count, _5count, _6count = 0;
             //            unchecked
             {
 
@@ -256,7 +267,7 @@ namespace WireWorldWindows
                             switch (states.Length)
                             {
                                 case 1:
-//                                    _1count++;
+                                    //                                    _1count++;
                                     if (headsGrid[states[0]])
                                     {
                                         goto good;
@@ -264,14 +275,14 @@ namespace WireWorldWindows
                                     break;
 
                                 case 2:
-//                                    _2count++;
+                                    //                                    _2count++;
                                     if (headsGrid[states[0]] || headsGrid[states[1]])
                                     {
                                         goto good;
                                     }
                                     break;
                                 case 3:
-//                                    _3count++;
+                                    //                                    _3count++;
                                     var s0 = headsGrid[states[0]];
                                     var s1 = headsGrid[states[1]];
                                     var s2 = headsGrid[states[2]];
@@ -281,7 +292,7 @@ namespace WireWorldWindows
                                     }
                                     break;
                                 case 4:
-//                                    _4count++;
+                                    //                                    _4count++;
                                     for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
                                     {
                                         if (headsGrid[states[ind2]])
@@ -300,7 +311,7 @@ namespace WireWorldWindows
                                     }
                                     break;
                                 case 5:
-//                                    _5count++;
+                                    //                                    _5count++;
                                     for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
                                     {
                                         if (headsGrid[states[ind2]])
@@ -319,7 +330,7 @@ namespace WireWorldWindows
                                     }
                                     break;
                                 case 6:
-//                                    _6count++;
+                                    //                                    _6count++;
                                     for (int ind2 = 0, statesLen = states.Length; ind2 < statesLen; ind2++)
                                     {
 
@@ -352,7 +363,7 @@ namespace WireWorldWindows
                     }
                 }
 
-          
+
 
 
                 newBoardState.TailsArray = collection;
@@ -360,7 +371,7 @@ namespace WireWorldWindows
                 newBoardState.TailsGrid = headsGrid;
             }
 
-//            Debug.WriteLine($"{_1count} {_2count} {_3count} {_4count} {_5count} {_6count}");
+            //            Debug.WriteLine($"{_1count} {_2count} {_3count} {_4count} {_5count} {_6count}");
             return newBoardState;
         }
 
@@ -525,7 +536,7 @@ namespace WireWorldWindows
         private static int[] SwitchArrayHead1;
         private static int[] SwitchArrayHead2;
         private static int[] SwitchArrayHead3;
-        public static int EducatedHeadCount ;
+        public static int EducatedHeadCount;
 
         public static void SetupArraySwitch()
         {

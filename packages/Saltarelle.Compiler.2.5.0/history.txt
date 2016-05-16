@@ -1,0 +1,266 @@
+2.5.0
+Awaiting a task throws the inner exception rather than the AggregateException of the task, as in .net (#294).
+Created a [BackingFieldName] attribute that can be used to specify the name of the backing field for an automatically implemented property or event.
+BREAKING CHANGE: [IntrinsicProperty] no longer implies [PreserveName]
+Added a [CustomInitializationAttribute] that allows custom initialization to be specified for fields (including the backing fields of properties and events)
+Fixed issue with Object.keys being used before it was defined on browsers that don't support it natively (or if a polyfill was already included) (#276)
+BREAKING CHANGE: Removed Array.prototype.filter, forEach and every from mscorlib. Use some other polyfill if you need these (#276).
+Fixed comparison of null values using Comparer<T>.Default (#279)
+Support for user-defined value types (#146)
+Fixed problem with method group conversions on static methods implemented as inline code (#281)
+Fixed problem overriding members that implement interface methods implemented as inline code with a generated method (#272)
+Fixed problem with empty ScriptName and ExpandParams (#264)
+Fixed reflection for members of interfaces (#267)
+Fixed issue causing param arrays to sometimes be created multiple times (#268)
+Better extensibility for the OOP emulator. This can enable lots of cool import libs.
+Allow empty [ScriptName] on static methods (#258).
+Fixed issue causing compiler error with await in if with empty else block (#259).
+Fixed issue overriding toString and other issues caused by the DontEnum bug in IE<9 (#260).
+
+2.4.0
+Fixed issue causing [NamedValues] enums not to work correctly when used as generic arguments (#256)
+Corrected DateTime.UtcNow and added DateTime.ToLocalTime and DateTime.ToUniversal (#250)
+Support escaped braces ({{, }}) in format strings (#252)
+Added possibility to embed resources in the generated script (Assembly.GetManifestResourceNames, Assembly.GetManifestResourceData).
+Added Environment.NewLine
+Added methods Convert.FromBase64String and Convert.ToBase64String
+BREAKING CHANGE: Type.GetType("TypeName, AssemblyName") will now only scan loaded assemblies. Additional assemblies can be loaded using Assembly.Load(). Type.GetType("TypeName") works like before.
+Fixed issue comparing a nullable type parameter to null (#247)
+Added basic Assembly and AppDomain classes (#210)
+[Serializable] types can now declare indexers, as long as they have one parameter (#233)
+Fixed problem when a name imported by the linker clashed with a variable name (eg. when importing a class named 'd3') (#94, #245)
+Fixed a few issues causing internal errors when using generics (#235, 236)
+
+2.3.1
+Added type NotImplementedException
+Fixed problem with assembly-level attributes on imported assemblies (#232).
+
+2.3.0
+Integer division by zero will now throw DivideByZeroException.
+Removed (actually: obsoleted as errors) the Script# reflection methods. Some of the functionality can now be found in the Script class, but some was just removed.
+Type system now supports interface variance (eg. IMyInterface<in T1, out T2>).
+Use real prototype inheritance instead of the homegrown __baseType hack.
+Ensured .NET semantics for String.Split methods that take a limit argument (#229). The JS semantics can be found in methods called JsSplit. This might cause compilation errors, but it will not silently break any code.
+Fixed TimeSpan.Zero (#227)
+Added [DefaultMemberReflectabilityAttribute] to specify which members are reflectable by default (#180)
+Added types Stopwatch and IFormatProvider, and added some overloads of String.Split (thanks to Marcel F)
+typeof(int?).GetGenericArguments() now returns int as in .net. Also improved the use of nullables as type arguments (#192)
+Added missing TimeSpan members (#215)
+Fixed internal error when overriding virtual members that implement [NonScriptable] interface members (#218)
+Fixed problem with base types not being initialized before derived types in certain cases including generic types in the chain (#222)
+Custom class attributes no longer need to qualify nested classes (#224)
+Fixed issues with double and float constants misbehaving in minified scripts (#208)
+NoInlineAttribute can now be applied to const fields to prevent them from being inlined in minified scripts.
+BREAKING CHANGE: double.MinValue now returns the value expected in .net (approx -1.7e-308) instead of the one in JS (Number.MIN_VALUE = 5e-324). JsMinValue exists to return Number.MIN_VALUE.
+Allow statements (any number of them) in inline code for methods returning void (#149)
+Enabled the use of JS reserved words as member names in inline code (#204)
+Fixed problem using anonymous methods in [Mixin] classes (#216)
+Casts to [NamedValues] enums are now treated as casts to string (#214)
+Use strict mode in generated assemblies as well as in mscorlib (#194)
+Implemented type System.Guid, using a string as the backing store (thanks to Valeriob)
+Added many standard .net exception types
+Fixed a few issues caused by 'dynamic' and 'object' not being treated as the same type when they should be (#202, #209)
+Added an AdditionalDependencyAttribute that can be used to specify additional dependencies to be imported by an assembly (thanks to Michael Busby)
+Fixed issue with reflectable knockout properties (#189)
+Allow empty script name for types in modules (#181)
+Fixed error compiling with Visual Studio if VSCommands is installed (#151)
+Fixed issue causing generic types with different type arguments to (occasionally) be treated as the same type when used as a base type (#186).
+
+2.2.0
+Added metadata for typed arrays.
+Added possibility to specify alternative inline code when a method is being invoked in non-expanded form, and used that to ensure all RTL methods can be invoked in non-expanded form (#177).
+Fixed method group conversions on extension methods (#176).
+Make sure additional files are copied to the output directory in order to avoid unnecessary rebuilds (#172).
+Fixed bug in the 'C' number format.
+All constructors for [Imported] types are now treated as unnamed constructors unless a [ScriptName] is specified for them (#164).
+Applying a [ScriptNameAttribute] to an [Imported] enum will now cause the fields of the enum to be treated as field access on the type (#160).
+
+2.1.0
+Added class HttpUtility
+It is now an error to use the 'is' and 'as' operators with types that don't obey the type system.
+Allow parameters for ObjectLiteral constructors to be a type derived from the initialized member or a non-nullable version of a nullable member.
+Fixed issue when a local variable is called 'ss' (#154)
+Added types System.TimeSpan, System.Random (thanks to Marcel F)
+Implemented support for expression trees.
+Interfaces can now be serializable (#106)
+BREAKING CHANGE: Math.Round now uses C# semantics (RoundToEven). To get JS semantics (round up), use Math.JsRound.
+ScriptSkipAttribute can now be specified to constructors to indicate that the constructor call will be skipped when used as a constructor initializer (": base()" or ": this()")
+More .net string and Math methods (thanks to Marcel F)
+Implemented .net reflection API (#125)
+Support [InlineCode] on property accessors on serializable types
+
+2.0.4
+Fixed bug generating async methods with return statements inside nested blocks (#143)
+
+2.0.3
+Fixed bug causing invalid code being generated for async methods when a try block is the first statement inside a nested block (#141)
+
+2.0.2
+Fixed problems causing @-signs to appear in verbatim identifiers (eg. public int @event).
+Hopefully this time fixed issue running sc.exe in Mono (#131)
+Added interface IFormattable and used that to fix String.Format with custom format (#133)
+
+2.0.1
+Added types IComparer<T> and Comparer<T> (#130)
+Fixed issue running sc.exe in Mono (#131)
+
+2.0.0
+Fixed issue with labels in switch section bodies (#128)
+Support using the params parameter in [ExpandParams] methods and allow [ExpandParams] methods to be called in non-expanded form.
+Created a MinimizePublicNamesAttribute that can be used to specify that public members are minified in addition to non-public ones (#84).
+Fixed issue causing internal errors when compiling async methods with certain constructs.
+Added IncludeGenericArgumentsDefaultAttribute to specify default values for IncludeGenericArguments in an assembly.
+Added IncludeGenericArgumentsAttribute and removed IgnoreGenericArgumentsAttribute. For the IgnoreGenericArguments effect, use IncludeGenericArguments(false).
+Use Object.Equals() in ICollection methods Contains, IndexOf, Remove of collections and arrays.
+mscorlib.js no longer extends any built-in object. The only global pollution is a single global object called 'ss'.
+    This is a breaking change for manually written Javascript that depends on mscorlib, but should not affect compiled code.
+BREAKING CHANGE: System.DateTime now uses one-based months. System.JsDate uses zero-based months (#116)
+BREAKING CHANGE: String.Substring now matches .net semantics (start/count). If you want JS semantics (start/end), use String.JsSubstring (#117).
+Replaced AsyncTestAttribute with an IsAsync property on TestAttribute.
+Moved QUnit import library into the assembly Saltarelle.QUnit. Moved all QUnit classes to the namespace QUnit.
+The compilation process is now pluggable.
+Added InlineConstantAttribute and converted a bunch of static properties in the runtime to inline constants.
+Added interfaces IComparable, IEquatable.
+Dictionary now supports a custom EqualityComparer.
+Support invoking and overriding object.Equals and object.GetHashCode
+Created type System.Lazy<T>
+
+1.7.1
+No longer allows "string s = (string)65"
+Fixed error causing type initializers to be invoked in the opposite order to what they should (#96)
+
+1.7.0
+Added heuristic to run type initializers in the correct order (#96)
+Fixed issue with the casing of some jQueryUI widgets (#107)
+Fixed issue using object initializers when creating instances of type parameters (#111).
+Fixed issue with [InlineCode("new a.b()")] (#109)
+Fixed issue (sometimes) causing errors when deriving from a nested type (#108)
+Added static methods Object.Keys and Object.GetOwnPropertyNames
+Fixed issue with KeyValuePair constructors (#112)
+Added parameterless versions of ObservableArray.RemoveAll and ObservableArray.DestroyAll (#104).
+Fixed internal error when using the result of dynamic method calls in certain invalid ways (#105).
+Generate all code inside an anonymous function when not using a module loader (#99).
+Fixed issue causing incorrect code to be generated when the variable declared by a foreach() loop was used by reference.
+Fixed issue causing ref and out parameters to anonymous methods and lambdas not to work (#98).
+
+1.6.3
+Fixed issues with user-defined conversion operators (#97)
+Knockout API updates
+Fixed issue invoking static method with dynamic argument (#95)
+
+1.6.2
+Throw an exception if any index in a multidimensional array access is out of range (#79)
+Fixed issue with Dispose() method for iterator blocks.
+
+1.6.1
+Fixed an issue causing the state machine rewriter to generate incorrect code
+Added interfaces IEquatable<T> and IHashable<T>
+Created a "real" dictionary class that actually uses GetHashCode() and Equals().
+
+1.5.2
+Don't swallow exceptions in async void methods.
+Fixed assigning to the backing field of an event.
+Fixed issue using async methods in certain cases when not using the VS .targets file.
+The variable declared in a foreach statement is now considered declared inside the loop (only matters when capturing it, breaking change in C#5.0)
+Fixed issue causing the "N" format specifier to forget the minus sign for small negative numbers.
+
+1.5.1
+Fixed issue using "this" in async methods.
+
+1.5.0
+Added Support for AMD (AsyncModuleAttribute)
+Added support for generating executables, which will invoke the static Main entry point (command line -t:exe, task property TargetType).
+Allow invalid identifiers in [ScriptName] and similar attribute. This will generate indexing expressions rather than dot-notation for those members.
+foreach over ElementCollection and List<T> will now use a for loop. The [EnumerateAsArrayAttribute] controls this behaviour.
+Casting undefined to another type now returns undefined (instead of throwing an error).
+Can now specify PreseveMemberCase(false) on types to ignore the effect of a PreserveMemberCaseAttribute on the assembly.
+Node.js support: mscorlib works in Node, and there is a Node.js import library.
+Allow members other than methods in [GlobalMethods] classes. All members in such classes will be treated as gloabls (or module globals).
+Added support for CommonJS require
+
+1.4.0
+Implemented support for async/await.
+Fixed problem assigning an object creation with initializers to a by-reference variable.
+Fixed problems causing compilation error when using a default constructor constarint on a type parameter.
+Fixed invoking method implemented as inline code with type parameters as type arguments.
+Can now specify custom implementations for methods/properties that override/implement [NonScriptable] base members.
+Fixed bug when assigning to a property of type dynamic when the property owner is not dynamic.
+Fixed error when using 'x is Function'
+Array utility methods are now typed extension methods in the System namespace rather than untyped instance methods on Array.
+Fixed issue causing Type.cast calls to be generated for [Imported] generic types.
+Fixed type ordering issue when inheriting from a type that uses [IgnoreGenericArguments].
+Support multidimensional arrays.
+Fixed ordering of type to prevent unnecessary (and sometimes problematic) Type.registerNamespace calls
+
+1.3.0
+Support empty ScriptName for NamedValues enum.
+Added MinValue/MaxValue members to integer types.
+Added members necessary to compile iterator blocks returning IEnumerable.
+Fixed internal error when inheriting from generic type.
+Added conditions to project imports to work with NuGet package restore.
+Fixed problem invoking method on a class decorated with a [MixinAttribute].
+Fixed compilation of expression lambda containing a single property assignment.
+Fixed issue causing the property assignment to erroneously happen unconditionally in the statements "a && (P = b)" and "a || (P = b)".
+Conditional expressions now only declare the temporary variable once.
+Ensure that the RHS of a coalescing operator is not evaluated if the LHS is null
+Added support for [ExpandParams] and [BindThisToFirstParameter] attributes on delegates.
+
+1.2.5
+Refactored the handling of inline code. This means that unnecessary parentheses should no longer appear when using certain methods. It also means that the {,arg} modifier is removed ({*arg} now knows what to do), and inline code is verified to be syntactically valid.
+Re-added types Queue<T> and Stack<T> to the RTL
+
+1.2.4
+ImportedAttribute now also counts as IgnoreGenericArgument by default (Script# compatibility issue).
+Fixed an issue causing object initializers to be ignored for constructors defined as inline code.
+Fixed issue causing enum fields not to be included in the enum type.
+
+1.2.3
+Fixed metadata bug causing jQuery.ExtendXX methods not to work
+Added a PreserveMemberCaseAttribute that can be used to prevent camel-casing of members in an assembly or a type.
+
+1.2.2
+Conversions between JsDate and DateTime are now explicit. Should solve issues involving nullable DateTimes.
+
+1.2.1
+Support constructors with a single 'params object[]' parameter for imported types to create a name-value collection.
+Renamed MutableDateTime to JsDate.
+Fixed issue causing instantiation of generic types with named constructors to not work (#18).
+
+1.2.0
+Fixed compiling instance methods on serializable types.
+Insert parentheses around number when a member is being accessed (eg. (1).member).
+Removed implicit conversion of char to string because that caused issues with csc. Added error message when char is boxed because this is very unlikely to yield undesired behaviour.
+Serializable types no longer have to be sealed (but they still cannot use virtual/override)
+Fixed issue with Visual Studio IntelliSense
+Fixed issue that causes s.IndexOf("x", 1) to be compiled to s.indexOf(String.fromCharCode('/'), 1)
+Fixed issue using static members through subclasses of the declaring type.
+Added new assembly-level ScriptSharpCompatibiliyAttribute.
+Added equality and inequality operators to System.DateTime.
+Some fixes to System.String
+
+1.1.4
+Fixed NuGet dependency versions. Installing Runtime will now always install the latest version of the compiler and so on.
+
+1.1.3
+Fixed issue cloning generic delegates (eg. Func, Action).
+
+1.1.2
+Fixed issue causing incorrect code to be generated when duplicate using directives were specified. Also added code to ensure an internal error is raised under similar circumstances.
+RegexMatch has a Length property and is convertible to string[]
+DateTime.ParseExact and ParseExactUtc metadata updated to return DateTime? (which they always actually have in script)
+
+1.1.1
+Added type NotSupportedException (required for the iterator blocks feature).
+
+1.1.0
+Use !! for dynamic conversions to bool.
+Fixed internal error when implementing properties/events that are [NonScriptable]
+Implemented support for iterator blocks (yield)
+Minification improvements
+DateTime is now an immutable struct, MutableDateTime is a mutable date class.
+
+1.0.1
+Fixed project URL and included history in NuGet packages.
+
+1.0.0
+Initial version

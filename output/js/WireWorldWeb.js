@@ -440,16 +440,16 @@
 						return;
 					}
 					sw.restart();
-					for (var i = 0; i < 2304; i++) {
+					for (var i = 0; i < 1; i++) {
 						boardState = $Wireworld_$Program.$tickBoard(boardState);
 						iterations++;
 					}
 					sw.stop();
 					totalms += sw.milliseconds();
 					ticks++;
-				//	if (ticks % 500 === 0) {
+					if (ticks % 500 === 0) {
 						console.log(ss.formatString('MS Per Run: {0}', totalms / ticks));
-					//}
+					}
 				}, 1);
 				this.$drawBack(contextBack);
 				this.$drawFront(contextFront, boardState);

@@ -1,0 +1,25 @@
+3.1.0
+Removed XmlElement.Name and .Value to avoid surprises (#12)
+Modified metadata to avoid annoyances with returned collections sometimes being too generic (#11)
+Fixed the event enums to not include the "on" prefix in the name (erik-kallen/SaltarelleCompiler#280)
+Re-added XXEvent.initXXEvent methods (#10)
+
+3.0.1
+Use 2.0.0.0 as the assembly version to avoid versioning issues.
+
+3.0.0
+MASSIVE CHANGE: Auto-generate most of this binding assembly from the WebIDL used by Mozilla. Expect having to change things (although the backwards compatibility should be reasonably good)
+
+2.3.0
+Use assembly version x.0.0.0 in order to get less dependency versioning problems.
+Works with compiler/runtime 2.3.0
+
+2.2.0
+Web audio API (thanks to Timothy Fries)
+
+2.1.0
+WebGL support (thanks to Marcel F and Delta Engine)
+Updated custom event signatures to match DOM specification (thanks to Michael Busby)
+
+2.0.0
+Initial version

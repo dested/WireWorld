@@ -391,7 +391,7 @@ namespace Wireworld
         {
             var newBoardState = new BoardState();
 
-
+                
             var headsGrid = boardState.HeadsGrid;
             var tailsGrid = boardState.TailsGrid;
             var newHeadsGrid = newBoardState.HeadsGrid;

@@ -1,0 +1,11 @@
+1.10.1
+Work with both 2.x and 3.x versions of Saltarelle.Web
+Added jQuery.Select(Element) and string as an option for Data in jQueryAjaxOptions
+
+1.10.0
+Use assembly version x.0.0.0 in order to get less dependency versioning problems.
+Use jQuery 1.10.2
+Updated compiler/runtime/web libraries to 2.3.0
+
+1.9.0
+Initial version with jQuery 1.9.1

@@ -1,0 +1,1 @@
+﻿This file is safe to remove from the project, but NuGet requires the Saltarelle.Compiler package to install something.

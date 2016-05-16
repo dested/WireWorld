@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Saltarelle.Web</name>
+    </assembly>
+    <members>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.Copy">
+            <summary>
+            A (B is ignored). Display the source image instead of the destination image.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.DestinationAtop">
+            <summary>
+            B atop A. Display the destination image wherever both images are opaque.
+            Display the source image wherever the source image is opaque but the
+            destination image is transparent. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.DestinationIn">
+            <summary>
+            B in A. Display the destination image wherever both the destination image and
+            source image are opaque. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.DestinationOut">
+            <summary>
+            B out A. Display the destination image wherever the destination image is opaque
+            and the source image is transparent. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.DestinationOver">
+            <summary>
+            B over A. Display the destination image wherever the destination image is opaque.
+            Display the source image elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.Lighter">
+            <summary>
+            A plus B. Display the sum of the source image and destination image, with color
+            values approaching 1 as a limit.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.SourceAtop">
+            <summary>
+            A atop B. Display the source image wherever both images are opaque. Display the
+            destination image wherever the destination image is opaque but the source image
+            is transparent. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.SourceIn">
+            <summary>
+            A in B. Display the source image wherever both the source image and destination
+            image are opaque. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.SourceOut">
+            <summary>
+            A out B. Display the source image wherever the source image is opaque and the
+            destination image is transparent. Display transparency elsewhere.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.SourceOver">
+            <summary>
+            A over B. Display the source image wherever the source image is opaque. Display the
+            destination image elsewhere. This is the default option.
+            </summary></member>
+        <member name="F:System.Html.Media.Graphics.CompositeOperation.Xor">
+            <summary>
+            A xor B. Exclusive OR of the source image and destination image.
+            </summary></member>
+    </members>
+</doc>

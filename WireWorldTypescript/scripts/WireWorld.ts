@@ -17,65 +17,63 @@ export class StatePosition {
 }
 
 export class Program {
-    magnify = 2;
+    magnify = 1;
     private iterations;
 
-    start() {
+    start(draw: boolean) {
         var boardState = null;
 
+        if (draw) {
+            var canvasBack = <HTMLCanvasElement>document.getElementById("canvasBack");
+            var contextBack = <CanvasRenderingContext2D>canvasBack.getContext("2d");
 
-        var canvasBack = <HTMLCanvasElement>document.getElementById("canvasBack");
-        var contextBack = <CanvasRenderingContext2D>canvasBack.getContext("2d");
+            var canvasFront = <HTMLCanvasElement>document.getElementById("canvasFront");
+            var contextFront = <CanvasRenderingContext2D>canvasFront.getContext("2d");
 
-        var canvasFront = <HTMLCanvasElement>document.getElementById("canvasFront");
-        var contextFront = <CanvasRenderingContext2D>canvasFront.getContext("2d");
-
-        var lastPoint = null;
-        var down = false;
-        var updatedCoppers = false;
-        $(canvasFront).mousedown(a => {
-            lastPoint = new StatePosition(a.offsetX / this.magnify, a.offsetY / this.magnify);
-            down = true;
-            a.preventDefault();
-        });
-        $(canvasFront).mouseup(a => {
-            lastPoint = null;
-            down = false;
-            if (updatedCoppers) {
-                this.buildCoppers();
-                updatedCoppers = false;
-            }
-            a.preventDefault();
-        });
-        $(canvasFront).on("contextmenu", a => {
-            a.preventDefault();
-        });
-
-        $(canvasFront).mousemove(event => {
-            event.preventDefault();
-            if (boardState != null && down) {
-                var x = event.offsetX / this.magnify;
-                var y = event.offsetY / this.magnify;
-                var points: {[key: number]: boolean} = {};
-
-                for (var position of this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y)) {
-                    this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
-                    points[position.stateIndex] = true;
+            var lastPoint = null;
+            var down = false;
+            var updatedCoppers = false;
+            $(canvasFront).mousedown(a => {
+                lastPoint = new StatePosition(a.offsetX / this.magnify, a.offsetY / this.magnify);
+                down = true;
+                a.preventDefault();
+            });
+            $(canvasFront).mouseup(a => {
+                lastPoint = null;
+                down = false;
+                if (updatedCoppers) {
+                    this.buildCoppers();
+                    updatedCoppers = false;
                 }
-                if (event.ctrlKey) {
-                    updatedCoppers = true;
-                    this.redrawBack(contextBack, points);
+                a.preventDefault();
+            });
+            $(canvasFront).on("contextmenu", a => {
+                a.preventDefault();
+            });
+
+            $(canvasFront).mousemove(event => {
+                event.preventDefault();
+                if (boardState != null && down) {
+                    var x = event.offsetX / this.magnify;
+                    var y = event.offsetY / this.magnify;
+                    var points: {[key: number]: boolean} = {};
+
+                    for (var position of this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y)) {
+                        this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
+                        points[position.stateIndex] = true;
+                    }
+                    if (event.ctrlKey) {
+                        updatedCoppers = true;
+                        this.redrawBack(contextBack, points);
+                    }
+
+                    lastPoint = new StatePosition(x, y);
                 }
-
-                lastPoint = new StatePosition(x, y);
-            }
-        });
-
+            });
+        }
         $.get("js/wireworld.txt").complete(request=> {
             var board = new Board(request.responseText);
 
-            canvasBack.width = canvasFront.width = Board.boardWidth * this.magnify;
-            canvasBack.height = canvasFront.height = Board.boardHeight * this.magnify;
 
             //                ele.Html(board.ToString());
             boardState = this.generateInitialBoardState();
@@ -94,19 +92,21 @@ export class Program {
                 totalMs += res;
                 ticks++;
 
-                if (ticks%500 == 0)
-                {
+                if (ticks % 500 == 0) {
                     console.log(`MS Per Run: ${totalMs / ticks}`);
                 }
 
             }, 1);
+            if (draw) {
+                canvasBack.width = canvasFront.width = Board.boardWidth * this.magnify;
+                canvasBack.height = canvasFront.height = Board.boardHeight * this.magnify;
 
-            this.drawBack(contextBack);
-            this.drawFront(contextFront, boardState);
-            setInterval(() => {
+                this.drawBack(contextBack);
                 this.drawFront(contextFront, boardState);
-            }, 1000 / 60);
-
+                setInterval(() => {
+                    this.drawFront(contextFront, boardState);
+                }, 1000 / 60);
+            }
 
         });
 
@@ -444,40 +444,17 @@ export class BoardState {
     public headsGrid: boolean[];
     public tailsGrid: boolean[];
 
-    private static switchArray = 0;
-    private static switchArray1: boolean[];
-    private static switchArray2: boolean[];
-    private static switchArray3: boolean[];
-    public static educatedHeadsArraySize: number = 0;
+    private static totalItems: number;
 
     public static setupArraySwitch() {
-        this.switchArray1 = new Array(Board.boardWidth * Board.boardHeight);
-        this.switchArray2 = new Array(Board.boardWidth * Board.boardHeight);
-        this.switchArray3 = new Array(Board.boardWidth * Board.boardHeight);
+        this.totalItems = Board.boardWidth * Board.boardHeight;
     }
 
     constructor() {
-        switch (BoardState.switchArray) {
-            case 0:
-                BoardState.switchArray = 1;
-                this.headsGrid = BoardState.switchArray1;
-                break;
-            case 1:
-                BoardState.switchArray = 2;
-                this.headsGrid = BoardState.switchArray2;
-                break;
-            case 2:
-                BoardState.switchArray = 0;
-                this.headsGrid = BoardState.switchArray3;
-                break;
-        }
-
-        var l = this.headsGrid.length;
-        this.headsGrid.length = 0;
-        this.headsGrid.length = l;
-        this.headsArray = new Array(BoardState.educatedHeadsArraySize);
+        this.headsGrid = new Array(BoardState.totalItems);
+        this.headsArray = [];
     }
 }
 
 
-new Program().start();
+new Program().start(true);

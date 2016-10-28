@@ -22,57 +22,57 @@ System.register("WireWorld", [], function(exports_1, context_1) {
             exports_1("StatePosition", StatePosition);
             Program = (function () {
                 function Program() {
-                    this.magnify = 2;
+                    this.magnify = 1;
                 }
-                Program.prototype.start = function () {
+                Program.prototype.start = function (draw) {
                     var _this = this;
                     var boardState = null;
-                    var canvasBack = document.getElementById("canvasBack");
-                    var contextBack = canvasBack.getContext("2d");
-                    var canvasFront = document.getElementById("canvasFront");
-                    var contextFront = canvasFront.getContext("2d");
-                    var lastPoint = null;
-                    var down = false;
-                    var updatedCoppers = false;
-                    $(canvasFront).mousedown(function (a) {
-                        lastPoint = new StatePosition(a.offsetX / _this.magnify, a.offsetY / _this.magnify);
-                        down = true;
-                        a.preventDefault();
-                    });
-                    $(canvasFront).mouseup(function (a) {
-                        lastPoint = null;
-                        down = false;
-                        if (updatedCoppers) {
-                            _this.buildCoppers();
-                            updatedCoppers = false;
-                        }
-                        a.preventDefault();
-                    });
-                    $(canvasFront).on("contextmenu", function (a) {
-                        a.preventDefault();
-                    });
-                    $(canvasFront).mousemove(function (event) {
-                        event.preventDefault();
-                        if (boardState != null && down) {
-                            var x = event.offsetX / _this.magnify;
-                            var y = event.offsetY / _this.magnify;
-                            var points = {};
-                            for (var _i = 0, _a = _this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y); _i < _a.length; _i++) {
-                                var position = _a[_i];
-                                _this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
-                                points[position.stateIndex] = true;
+                    if (draw) {
+                        var canvasBack = document.getElementById("canvasBack");
+                        var contextBack = canvasBack.getContext("2d");
+                        var canvasFront = document.getElementById("canvasFront");
+                        var contextFront = canvasFront.getContext("2d");
+                        var lastPoint = null;
+                        var down = false;
+                        var updatedCoppers = false;
+                        $(canvasFront).mousedown(function (a) {
+                            lastPoint = new StatePosition(a.offsetX / _this.magnify, a.offsetY / _this.magnify);
+                            down = true;
+                            a.preventDefault();
+                        });
+                        $(canvasFront).mouseup(function (a) {
+                            lastPoint = null;
+                            down = false;
+                            if (updatedCoppers) {
+                                _this.buildCoppers();
+                                updatedCoppers = false;
                             }
-                            if (event.ctrlKey) {
-                                updatedCoppers = true;
-                                _this.redrawBack(contextBack, points);
+                            a.preventDefault();
+                        });
+                        $(canvasFront).on("contextmenu", function (a) {
+                            a.preventDefault();
+                        });
+                        $(canvasFront).mousemove(function (event) {
+                            event.preventDefault();
+                            if (boardState != null && down) {
+                                var x = event.offsetX / _this.magnify;
+                                var y = event.offsetY / _this.magnify;
+                                var points = {};
+                                for (var _i = 0, _a = _this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y); _i < _a.length; _i++) {
+                                    var position = _a[_i];
+                                    _this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
+                                    points[position.stateIndex] = true;
+                                }
+                                if (event.ctrlKey) {
+                                    updatedCoppers = true;
+                                    _this.redrawBack(contextBack, points);
+                                }
+                                lastPoint = new StatePosition(x, y);
                             }
-                            lastPoint = new StatePosition(x, y);
-                        }
-                    });
+                        });
+                    }
                     $.get("js/wireworld.txt").complete(function (request) {
                         var board = new Board(request.responseText);
-                        canvasBack.width = canvasFront.width = Board.boardWidth * _this.magnify;
-                        canvasBack.height = canvasFront.height = Board.boardHeight * _this.magnify;
                         //                ele.Html(board.ToString());
                         boardState = _this.generateInitialBoardState();
                         var iterations = 0;
@@ -93,11 +93,15 @@ System.register("WireWorld", [], function(exports_1, context_1) {
                                 console.log("MS Per Run: " + totalMs / ticks);
                             }
                         }, 1);
-                        _this.drawBack(contextBack);
-                        _this.drawFront(contextFront, boardState);
-                        setInterval(function () {
+                        if (draw) {
+                            canvasBack.width = canvasFront.width = Board.boardWidth * _this.magnify;
+                            canvasBack.height = canvasFront.height = Board.boardHeight * _this.magnify;
+                            _this.drawBack(contextBack);
                             _this.drawFront(contextFront, boardState);
-                        }, 1000 / 60);
+                            setInterval(function () {
+                                _this.drawFront(contextFront, boardState);
+                            }, 1000 / 60);
+                        }
                     });
                 };
                 Program.prototype.getPointsOnLine = function (x0, y0, x1, y1) {
@@ -369,36 +373,16 @@ System.register("WireWorld", [], function(exports_1, context_1) {
             exports_1("WireState", WireState);
             BoardState = (function () {
                 function BoardState() {
-                    switch (BoardState.switchArray) {
-                        case 0:
-                            BoardState.switchArray = 1;
-                            this.headsGrid = BoardState.switchArray1;
-                            break;
-                        case 1:
-                            BoardState.switchArray = 2;
-                            this.headsGrid = BoardState.switchArray2;
-                            break;
-                        case 2:
-                            BoardState.switchArray = 0;
-                            this.headsGrid = BoardState.switchArray3;
-                            break;
-                    }
-                    var l = this.headsGrid.length;
-                    this.headsGrid.length = 0;
-                    this.headsGrid.length = l;
-                    this.headsArray = new Array(BoardState.educatedHeadsArraySize);
+                    this.headsGrid = new Array(BoardState.totalItems);
+                    this.headsArray = [];
                 }
                 BoardState.setupArraySwitch = function () {
-                    this.switchArray1 = new Array(Board.boardWidth * Board.boardHeight);
-                    this.switchArray2 = new Array(Board.boardWidth * Board.boardHeight);
-                    this.switchArray3 = new Array(Board.boardWidth * Board.boardHeight);
+                    this.totalItems = Board.boardWidth * Board.boardHeight;
                 };
-                BoardState.switchArray = 0;
-                BoardState.educatedHeadsArraySize = 0;
                 return BoardState;
             }());
             exports_1("BoardState", BoardState);
-            new Program().start();
+            new Program().start(true);
         }
     }
 });

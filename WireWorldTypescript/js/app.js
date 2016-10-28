@@ -31,68 +31,66 @@ System.register("WireWorld", [], function(exports_1, context_1) {
                     var contextBack = canvasBack.getContext("2d");
                     var canvasFront = document.getElementById("canvasFront");
                     var contextFront = canvasFront.getContext("2d");
-                    /*
-                     var lastPoint = null;
-                     var down = false;
-                     var updatedCoppers = false;
-                     jQuery.FromElement(canvasFront).MouseDown(a =>
-                     {
-                     lastPoint = new StatePosition(a.OffsetX / magnify, a.OffsetY / magnify);
-                     down = true;
-                     a.PreventDefault();
-                     });
-                     jQuery.FromElement(canvasFront).MouseUp(a =>
-                     {
-                     lastPoint = null;
-                     down = false;
-                     if (updatedCoppers)
-                     {
-                     buildCoppers();
-                     updatedCoppers = false;
-                     }
-                     a.PreventDefault();
-                     });
-                     jQuery.FromElement(canvasFront).On("contextmenu", a =>
-                     {
-                     a.PreventDefault();
-                     });
-            
-                     jQuery.FromElement(canvasFront).MouseMove(@event =>
-                     {
-                     @event.PreventDefault();
-                     if (boardState != null && down)
-                     {
-                     var x = @event.OffsetX / magnify;
-                     var y = @event.OffsetY / magnify;
-                     JsDictionary<int, bool> points = new JsDictionary<int, bool>();
-            
-                     foreach (var position in GetPointsOnLine(lastPoint.X, lastPoint.Y, x, y))
-                     {
-                     updateSpot(position, @event.Which == 3, @event.CtrlKey, boardState);
-                     points[position.stateIndex]=true;
-                     }
-                     if (@event.CtrlKey)
-                     {
-                     updatedCoppers = true;
-                     redrawBack(contextBack,points);
-                     }
-            
-            
-                     lastPoint = new StatePosition(x, y);
-                     }
-                     });
-                     */
+                    var lastPoint = null;
+                    var down = false;
+                    var updatedCoppers = false;
+                    $(canvasFront).mousedown(function (a) {
+                        lastPoint = new StatePosition(a.offsetX / _this.magnify, a.offsetY / _this.magnify);
+                        down = true;
+                        a.preventDefault();
+                    });
+                    $(canvasFront).mouseup(function (a) {
+                        lastPoint = null;
+                        down = false;
+                        if (updatedCoppers) {
+                            _this.buildCoppers();
+                            updatedCoppers = false;
+                        }
+                        a.preventDefault();
+                    });
+                    $(canvasFront).on("contextmenu", function (a) {
+                        a.preventDefault();
+                    });
+                    $(canvasFront).mousemove(function (event) {
+                        event.preventDefault();
+                        if (boardState != null && down) {
+                            var x = event.offsetX / _this.magnify;
+                            var y = event.offsetY / _this.magnify;
+                            var points = {};
+                            for (var _i = 0, _a = _this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y); _i < _a.length; _i++) {
+                                var position = _a[_i];
+                                _this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
+                                points[position.stateIndex] = true;
+                            }
+                            if (event.ctrlKey) {
+                                updatedCoppers = true;
+                                _this.redrawBack(contextBack, points);
+                            }
+                            lastPoint = new StatePosition(x, y);
+                        }
+                    });
                     $.get("js/wireworld.txt").complete(function (request) {
                         var board = new Board(request.responseText);
                         canvasBack.width = canvasFront.width = Board.boardWidth * _this.magnify;
                         canvasBack.height = canvasFront.height = Board.boardHeight * _this.magnify;
                         //                ele.Html(board.ToString());
                         boardState = _this.generateInitialBoardState();
+                        var iterations = 0;
+                        var ticks = 0;
+                        var totalMs = 0;
                         setInterval(function () {
-                            // if (down) return;
+                            if (down)
+                                return;
+                            var perf = performance.now();
                             for (var i = 0; i < 1; i++) {
                                 boardState = _this.tickBoard(boardState);
                                 _this.iterations++;
+                            }
+                            var res = performance.now() - perf;
+                            totalMs += res;
+                            ticks++;
+                            if (ticks % 500 == 0) {
+                                console.log("MS Per Run: " + totalMs / ticks);
                             }
                         }, 1);
                         _this.drawBack(contextBack);
@@ -102,8 +100,83 @@ System.register("WireWorld", [], function(exports_1, context_1) {
                         }, 1000 / 60);
                     });
                 };
-                // getPointsOnLine(x0: number, y0: number, x1: number, y1: number): IEnumerable<StatePosition>;
-                // updateSpot(statePosition: StatePosition, rightClick: boolean, control: boolean, boardState: BoardState): void;
+                Program.prototype.getPointsOnLine = function (x0, y0, x1, y1) {
+                    var steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+                    if (steep) {
+                        var t = void 0;
+                        t = x0; // swap x0 and y0
+                        x0 = y0;
+                        y0 = t;
+                        t = x1; // swap x1 and y1
+                        x1 = y1;
+                        y1 = t;
+                    }
+                    if (x0 > x1) {
+                        var t = void 0;
+                        t = x0; // swap x0 and x1
+                        x0 = x1;
+                        x1 = t;
+                        t = y0; // swap y0 and y1
+                        y0 = y1;
+                        y1 = t;
+                    }
+                    var dx = x1 - x0;
+                    var dy = Math.abs(y1 - y0);
+                    var error = dx / 2;
+                    var ystep = (y0 < y1) ? 1 : -1;
+                    var y = y0;
+                    var points = [];
+                    for (var x = x0; x <= x1; x++) {
+                        points.push(new StatePosition((steep ? y : x), (steep ? x : y)));
+                        error = error - dy;
+                        if (error < 0) {
+                            y += ystep;
+                            error += dx;
+                        }
+                    }
+                    return points;
+                };
+                Program.prototype.updateSpot = function (statePosition, rightClick, control, boardState) {
+                    if (control) {
+                        if (!rightClick) {
+                            Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
+                            Board.copperGrid[statePosition.stateIndex] = true;
+                        }
+                        else {
+                            Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
+                            Board.copperGrid[statePosition.stateIndex] = false;
+                            boardState.headsGrid[statePosition.stateIndex] = false;
+                            boardState.tailsGrid[statePosition.stateIndex] = false;
+                            boardState.headsArray.splice(boardState.headsArray.indexOf(statePosition.stateIndex), 1);
+                        }
+                    }
+                    else {
+                        if (Board.copperGrid[statePosition.stateIndex]) {
+                            if (!rightClick) {
+                                boardState.headsArray.push(statePosition.stateIndex);
+                                boardState.headsGrid[statePosition.stateIndex] = true;
+                            }
+                            else {
+                                for (var index = boardState.headsArray.length - 1; index >= 0; index--) {
+                                    var position = boardState.headsArray[index];
+                                    if (position == statePosition.stateIndex) {
+                                        boardState.headsArray.splice(boardState.headsArray.indexOf(position), 1);
+                                        boardState.headsGrid[position] = false;
+                                        break;
+                                    }
+                                }
+                                for (var index = boardState.tailsArray.length - 1; index >= 0; index--) {
+                                    var position = boardState.tailsArray[index];
+                                    if (position == statePosition.stateIndex) {
+                                        boardState.tailsArray.splice(boardState.tailsArray.indexOf(position), 1);
+                                        boardState.tailsGrid[position] = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
                 Program.prototype.drawBack = function (context) {
                     context.fillStyle = "#000000";
                     context.fillRect(0, 0, Board.boardWidth * this.magnify, Board.boardHeight * this.magnify);
@@ -254,10 +327,10 @@ System.register("WireWorld", [], function(exports_1, context_1) {
             exports_1("Program", Program);
             Board = (function () {
                 /*    constructor(width: number, height: number) {
-                        Board.initialStates = new Array(width * height);
-                        Board.boardWidth = width;
-                        Board.boardHeight = height;
-                    }*/
+                 Board.initialStates = new Array(width * height);
+                 Board.boardWidth = width;
+                 Board.boardHeight = height;
+                 }*/
                 function Board(starting) {
                     var rows = starting.replace(new RegExp("\r", 'g'), "").split('\n');
                     Board.boardWidth = rows[0].length;

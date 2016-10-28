@@ -30,57 +30,46 @@ export class Program {
         var canvasFront = <HTMLCanvasElement>document.getElementById("canvasFront");
         var contextFront = <CanvasRenderingContext2D>canvasFront.getContext("2d");
 
-        /*
-         var lastPoint = null;
-         var down = false;
-         var updatedCoppers = false;
-         jQuery.FromElement(canvasFront).MouseDown(a =>
-         {
-         lastPoint = new StatePosition(a.OffsetX / magnify, a.OffsetY / magnify);
-         down = true;
-         a.PreventDefault();
-         });
-         jQuery.FromElement(canvasFront).MouseUp(a =>
-         {
-         lastPoint = null;
-         down = false;
-         if (updatedCoppers)
-         {
-         buildCoppers();
-         updatedCoppers = false;
-         }
-         a.PreventDefault();
-         });
-         jQuery.FromElement(canvasFront).On("contextmenu", a =>
-         {
-         a.PreventDefault();
-         });
+        var lastPoint = null;
+        var down = false;
+        var updatedCoppers = false;
+        $(canvasFront).mousedown(a => {
+            lastPoint = new StatePosition(a.offsetX / this.magnify, a.offsetY / this.magnify);
+            down = true;
+            a.preventDefault();
+        });
+        $(canvasFront).mouseup(a => {
+            lastPoint = null;
+            down = false;
+            if (updatedCoppers) {
+                this.buildCoppers();
+                updatedCoppers = false;
+            }
+            a.preventDefault();
+        });
+        $(canvasFront).on("contextmenu", a => {
+            a.preventDefault();
+        });
 
-         jQuery.FromElement(canvasFront).MouseMove(@event =>
-         {
-         @event.PreventDefault();
-         if (boardState != null && down)
-         {
-         var x = @event.OffsetX / magnify;
-         var y = @event.OffsetY / magnify;
-         JsDictionary<int, bool> points = new JsDictionary<int, bool>();
+        $(canvasFront).mousemove(event => {
+            event.preventDefault();
+            if (boardState != null && down) {
+                var x = event.offsetX / this.magnify;
+                var y = event.offsetY / this.magnify;
+                var points: {[key: number]: boolean} = {};
 
-         foreach (var position in GetPointsOnLine(lastPoint.X, lastPoint.Y, x, y))
-         {
-         updateSpot(position, @event.Which == 3, @event.CtrlKey, boardState);
-         points[position.stateIndex]=true;
-         }
-         if (@event.CtrlKey)
-         {
-         updatedCoppers = true;
-         redrawBack(contextBack,points);
-         }
+                for (var position of this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y)) {
+                    this.updateSpot(position, event.which == 3, event.ctrlKey, boardState);
+                    points[position.stateIndex] = true;
+                }
+                if (event.ctrlKey) {
+                    updatedCoppers = true;
+                    this.redrawBack(contextBack, points);
+                }
 
-
-         lastPoint = new StatePosition(x, y);
-         }
-         });
-         */
+                lastPoint = new StatePosition(x, y);
+            }
+        });
 
         $.get("js/wireworld.txt").complete(request=> {
             var board = new Board(request.responseText);
@@ -90,12 +79,26 @@ export class Program {
 
             //                ele.Html(board.ToString());
             boardState = this.generateInitialBoardState();
+            var iterations = 0;
+            var ticks = 0;
+            var totalMs = 0;
+
             setInterval(() => {
-                // if (down) return;
+                if (down) return;
+                var perf = performance.now();
                 for (var i = 0; i < 1; i++) {
                     boardState = this.tickBoard(boardState);
                     this.iterations++;
                 }
+                var res = performance.now() - perf;
+                totalMs += res;
+                ticks++;
+
+                if (ticks%500 == 0)
+                {
+                    console.log(`MS Per Run: ${totalMs / ticks}`);
+                }
+
             }, 1);
 
             this.drawBack(contextBack);
@@ -109,9 +112,92 @@ export class Program {
 
     }
 
-    // getPointsOnLine(x0: number, y0: number, x1: number, y1: number): IEnumerable<StatePosition>;
+    getPointsOnLine(x0: number, y0: number, x1: number, y1: number): StatePosition[] {
+        var steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
+        if (steep) {
+            let t;
+            t = x0; // swap x0 and y0
+            x0 = y0;
+            y0 = t;
+            t = x1; // swap x1 and y1
+            x1 = y1;
+            y1 = t;
+        }
+        if (x0 > x1) {
+            let t;
+            t = x0; // swap x0 and x1
+            x0 = x1;
+            x1 = t;
+            t = y0; // swap y0 and y1
+            y0 = y1;
+            y1 = t;
+        }
+        let dx = x1 - x0;
+        let dy = Math.abs(y1 - y0);
+        let error = dx / 2;
+        let ystep = (y0 < y1) ? 1 : -1;
+        let y = y0;
+        let points: StatePosition[] = [];
+        for (let x = x0; x <= x1; x++) {
+            points.push(new StatePosition((steep ? y : x), (steep ? x : y)));
+            error = error - dy;
+            if (error < 0) {
+                y += ystep;
+                error += dx;
+            }
+        }
+        return points;
+    }
 
-    // updateSpot(statePosition: StatePosition, rightClick: boolean, control: boolean, boardState: BoardState): void;
+    updateSpot(statePosition: StatePosition, rightClick: boolean, control: boolean, boardState: BoardState): void {
+        if (control) {
+            if (!rightClick) {
+                Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
+                Board.copperGrid[statePosition.stateIndex] = true;
+            }
+            else {
+                Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
+                Board.copperGrid[statePosition.stateIndex] = false;
+                boardState.headsGrid[statePosition.stateIndex] = false;
+                boardState.tailsGrid[statePosition.stateIndex] = false;
+
+                boardState.headsArray.splice(boardState.headsArray.indexOf(statePosition.stateIndex), 1);
+            }
+        }
+        else {
+
+
+            if (Board.copperGrid[statePosition.stateIndex]) {
+                if (!rightClick) {
+                    boardState.headsArray.push(statePosition.stateIndex);
+                    boardState.headsGrid[statePosition.stateIndex] = true;
+                }
+                else {
+
+
+                    for (var index = boardState.headsArray.length - 1; index >= 0; index--) {
+                        var position = boardState.headsArray[index];
+                        if (position == statePosition.stateIndex) {
+                            boardState.headsArray.splice(boardState.headsArray.indexOf(position), 1);
+                            boardState.headsGrid[position] = false;
+                            break;
+                        }
+                    }
+                    for (var index = boardState.tailsArray.length - 1; index >= 0; index--) {
+                        var position = boardState.tailsArray[index];
+                        if (position == statePosition.stateIndex) {
+                            boardState.tailsArray.splice(boardState.tailsArray.indexOf(position), 1);
+                            boardState.tailsGrid[position] = false;
+                            break;
+                        }
+                    }
+
+
+                }
+            }
+        }
+
+    }
 
     drawBack(context: CanvasRenderingContext2D): void {
         context.fillStyle = "#000000";
@@ -177,7 +263,7 @@ export class Program {
         boardState.tailsGrid = new Array(boardWidth * boardHeight);
         boardState.tailsArray = [];
 
-        Program.neighbors=[
+        Program.neighbors = [
             new StatePosition(-1, -1),
             new StatePosition(-1, 0),
             new StatePosition(-1, 1),
@@ -191,13 +277,10 @@ export class Program {
         Board.copperGrid = new Array(boardWidth * boardHeight);
         Board.coppers = new Array(boardWidth * boardHeight);
 
-        for (var y = 0; y < boardHeight; y++)
-        {
-            for (var x = 0; x < boardWidth; x++)
-            {
+        for (var y = 0; y < boardHeight; y++) {
+            for (var x = 0; x < boardWidth; x++) {
                 var statePos = new StatePosition(x, y);
-                switch (Board.initialStates[statePos.stateIndex])
-                {
+                switch (Board.initialStates[statePos.stateIndex]) {
                     case WireState.Head:
                         Board.copperGrid[statePos.stateIndex] = true;
                         boardState.headsArray.push(statePos.stateIndex);
@@ -221,13 +304,10 @@ export class Program {
     buildCoppers(): void {
         var boardHeight = Board.boardHeight;
         var boardWidth = Board.boardWidth;
-        for (var y = 0; y < boardHeight; y++)
-        {
-            for (var x = 0; x < boardWidth; x++)
-            {
+        for (var y = 0; y < boardHeight; y++) {
+            for (var x = 0; x < boardWidth; x++) {
                 var stateIndex = x + y * boardWidth;
-                if (Board.copperGrid[stateIndex])
-                {
+                if (Board.copperGrid[stateIndex]) {
                     Board.coppers[stateIndex] = this.getNeighborStates(x, y);
                 }
             }
@@ -238,14 +318,12 @@ export class Program {
     getNeighborStates(x: number, y: number): number[] {
         var boardWidth = Board.boardWidth;
 
-        var statePositions :number[]= [];
+        var statePositions: number[] = [];
 
-        for (var index = 0; index < Program.neighbors.length; index++)
-        {
+        for (var index = 0; index < Program.neighbors.length; index++) {
             var statePosition = Program.neighbors[index];
             var stateIndex = (x + statePosition.x) + (y + statePosition.y) * boardWidth;
-            if (Board.copperGrid[stateIndex])
-            {
+            if (Board.copperGrid[stateIndex]) {
                 statePositions.push(new StatePosition(x + statePosition.x, y + statePosition.y).stateIndex);
             }
         }
@@ -264,33 +342,26 @@ export class Program {
         var coppers = Board.coppers;
 
         var collection = boardState.headsArray;
-        for (var index = 0, colLen = collection.length; index < colLen; index++)
-        {
+        for (var index = 0, colLen = collection.length; index < colLen; index++) {
             var key = collection[index];
             var positions = coppers[key];
 
-            for (var i = 0, posLength = positions.length; i < posLength; i++)
-            {
+            for (var i = 0, posLength = positions.length; i < posLength; i++) {
                 var copperStateIndex = positions[i];
-                if (!tailsGrid[copperStateIndex] && !headsGrid[copperStateIndex] && !newHeadsGrid[copperStateIndex])
-                {
+                if (!tailsGrid[copperStateIndex] && !headsGrid[copperStateIndex] && !newHeadsGrid[copperStateIndex]) {
                     var states = coppers[copperStateIndex];
                     var headNeighbors = 0;
-                    for (var ind2 = 0, statesLen = states.length; ind2 < statesLen; ind2++)
-                    {
+                    for (var ind2 = 0, statesLen = states.length; ind2 < statesLen; ind2++) {
                         var stateIndex = states[ind2];
-                        if (headsGrid[stateIndex])
-                        {
+                        if (headsGrid[stateIndex]) {
                             headNeighbors++;
-                            if (headNeighbors == 3)
-                            {
+                            if (headNeighbors == 3) {
                                 headNeighbors = 0;
                                 break;
                             }
                         }
                     }
-                    if (headNeighbors > 0)
-                    {
+                    if (headNeighbors > 0) {
 
                         newBoardState.headsArray.push(copperStateIndex);
                         newHeadsGrid[copperStateIndex] = true;
@@ -312,11 +383,11 @@ export class Board {
     public static coppers: number[][];
     public static copperGrid: boolean[];
 
-/*    constructor(width: number, height: number) {
-        Board.initialStates = new Array(width * height);
-        Board.boardWidth = width;
-        Board.boardHeight = height;
-    }*/
+    /*    constructor(width: number, height: number) {
+     Board.initialStates = new Array(width * height);
+     Board.boardWidth = width;
+     Board.boardHeight = height;
+     }*/
 
     constructor(starting: string) {
         var rows = starting.replace(new RegExp("\r", 'g'), "").split('\n');
@@ -326,21 +397,18 @@ export class Board {
 
         Board.initialStates = new Array(Board.boardWidth * Board.boardHeight);
 
-        for (var rowIndex = 0;rowIndex < rows.length;rowIndex++)
-        {
+        for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
             var row = rows[rowIndex];
 
-            for (var characterIndex = 0;characterIndex < row.length;characterIndex++)
-            {
+            for (var characterIndex = 0; characterIndex < row.length; characterIndex++) {
                 var character = row[characterIndex];
                 Board.initialStates[characterIndex + rowIndex * Board.boardWidth] = this.charToState(character);
             }
         }
     }
 
-    charToState(character: string): WireState{
-        switch (character)
-        {
+    charToState(character: string): WireState {
+        switch (character) {
             case '#':
                 return WireState.Copper;
             case '@':

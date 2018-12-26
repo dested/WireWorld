@@ -540,8 +540,9 @@ import('./asm/build/optimized.wasm')
     const module = new WebAssembly.Module(result.default);
     return new WebAssembly.Instance(module, {
       env: {
-        memory: new WebAssembly.Memory({initial: 121}),
-        abort() {
+        memory: new WebAssembly.Memory({ initial: 121 }),
+        abort(_msg, _file, line, column) {
+          console.error("abort called at index.ts:" + line + ":" + column);
         }
       },
       console: {

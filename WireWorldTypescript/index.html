@@ -46,9 +46,18 @@
 <body>
 <canvas id="canvasBack"></canvas>
 <canvas id="canvasFront"></canvas>
-<div style="color:white; position:absolute">
-    <label for="cb">Crank</label>
-    <input id="cb" type="checkbox" onchange="window.crank=event.target.checked">
+<div style="color:white; position:absolute; top:20px; right:20px">
+    <div style="color:white; ">
+        <label for="asm">Use ASM</label>
+        <input id="asm" checked type="checkbox" onchange="window.webasm=event.target.checked">
+    </div>
+    <div style="color:white; ">
+        <label for="cb">Process 50 iterations per tick</label>
+        <input id="cb" type="checkbox" onchange="window.crank=event.target.checked">
+    </div>
+    <div id="msper" style="color:white; ">
+        MS Per Run: --------
+    </div>
 </div>
 
 <script src="dist/main.js"></script>

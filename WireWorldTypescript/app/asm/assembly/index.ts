@@ -1,7 +1,21 @@
 @external('console', 'logger')
 declare function logger(offset: usize): void
 
-const copperSize: u32 = 9;
+const copperLen: u32 = 9;
+const size = 605129;
+const arrLen = 10000;
+const coppersSize = size * copperLen;
+const headsArrayOffset = coppersSize + size;
+const headsGridOffset = headsArrayOffset + arrLen;
+const tailsArrayOffset = headsGridOffset + size;
+const tailsGridOffset = tailsArrayOffset + arrLen;
+
+const newHeadsArrayOffset = tailsGridOffset + size;
+const newHeadsGridOffset = newHeadsArrayOffset + arrLen;
+const newTailsArrayOffset = newHeadsGridOffset + size;
+const newTailsGridOffset = newTailsArrayOffset + arrLen;
+
+
 
 @inline
 function loadBit(offset: u32): u32 {
@@ -15,7 +29,7 @@ function storeBit(offset: u32, value: u32): void {
 
 @inline
 function loadCopper(offset: u32, pos: u8): u32 {
-  return loadBit(offset * copperSize + pos + 1);
+  return loadBit(offset * copperLen + pos + 1);
 }
 
 export function init(): void {
@@ -23,24 +37,14 @@ export function init(): void {
 }
 
 export function tick(): void {
-  const size = 605129;
-  const coppersSize = size * copperSize;
-  const headsArrayOffset = coppersSize + size * 1;
-  const headsGridOffset = coppersSize + size * 2;
-  const tailsArrayOffset = coppersSize + size * 3;
-  const tailsGridOffset = coppersSize + size * 4;
 
-  const newHeadsArrayOffset = coppersSize + size * 5;
-  const newHeadsGridOffset = coppersSize + size * 6;
-  const newTailsArrayOffset = coppersSize + size * 7;
-  const newTailsGridOffset = coppersSize + size * 8;
 
   /**/
   let newHeadArrayIndex = 0;
   let hLen: u32 = loadBit(headsArrayOffset);
   for (let index: u32 = 1; index <= hLen; index++) {
     let headKey = loadBit(headsArrayOffset + index);
-    let hCopperLen: u32 = loadBit(headKey * copperSize);
+    let hCopperLen: u32 = loadBit(headKey * copperLen);
     for (let i: u8 = 0; i < hCopperLen; i++) {
       let copperStateIndex = loadCopper(headKey, i);
       if (
@@ -49,7 +53,7 @@ export function tick(): void {
         loadBit(newHeadsGridOffset + copperStateIndex) === 0
       ) {
         let headNeighbors = 0;
-        let hnCopperLen: u32 = loadBit(copperStateIndex * copperSize);
+        let hnCopperLen: u32 = loadBit(copperStateIndex * copperLen);
         for (let ind2: u8 = 0; ind2 < hnCopperLen; ind2++) {
           let stateIndex = loadCopper(copperStateIndex, ind2);
           if (loadBit(headsGridOffset + stateIndex) === 1) {

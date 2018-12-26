@@ -3,7 +3,18 @@
  (memory $0 0)
  (table $0 1 anyfunc)
  (elem (i32.const 0) $null)
- (global $assembly/index/copperSize i32 (i32.const 9))
+ (global $assembly/index/copperLen i32 (i32.const 9))
+ (global $assembly/index/size i32 (i32.const 605129))
+ (global $assembly/index/arrLen i32 (i32.const 10000))
+ (global $assembly/index/coppersSize i32 (i32.const 5446161))
+ (global $assembly/index/headsArrayOffset i32 (i32.const 6051290))
+ (global $assembly/index/headsGridOffset i32 (i32.const 6061290))
+ (global $assembly/index/tailsArrayOffset i32 (i32.const 6666419))
+ (global $assembly/index/tailsGridOffset i32 (i32.const 6676419))
+ (global $assembly/index/newHeadsArrayOffset i32 (i32.const 7281548))
+ (global $assembly/index/newHeadsGridOffset i32 (i32.const 7291548))
+ (global $assembly/index/newTailsArrayOffset i32 (i32.const 7896677))
+ (global $assembly/index/newTailsGridOffset i32 (i32.const 7906677))
  (global $HEAP_BASE i32 (i32.const 8))
  (export "memory" (memory $0))
  (export "table" (table $0))
@@ -30,7 +41,7 @@
   i32.const 0
   set_local $0
   block $assembly/index/loadBit|inlined.0 (result i32)
-   i32.const 6051290
+   get_global $assembly/index/headsArrayOffset
    set_local $1
    get_local $1
    i32.const 2
@@ -49,7 +60,7 @@
     br_if $break|0
     block
      block $assembly/index/loadBit|inlined.1 (result i32)
-      i32.const 6051290
+      get_global $assembly/index/headsArrayOffset
       get_local $2
       i32.add
       set_local $3
@@ -61,7 +72,7 @@
      set_local $3
      block $assembly/index/loadBit|inlined.2 (result i32)
       get_local $3
-      get_global $assembly/index/copperSize
+      get_global $assembly/index/copperLen
       i32.mul
       set_local $4
       get_local $4
@@ -83,7 +94,7 @@
         block $assembly/index/loadCopper|inlined.0 (result i32)
          block $assembly/index/loadBit|inlined.3 (result i32)
           get_local $3
-          get_global $assembly/index/copperSize
+          get_global $assembly/index/copperLen
           i32.mul
           get_local $5
           i32.const 255
@@ -100,7 +111,7 @@
         end
         set_local $6
         block $assembly/index/loadBit|inlined.7 (result i32)
-         i32.const 7866677
+         get_global $assembly/index/tailsGridOffset
          get_local $6
          i32.add
          set_local $7
@@ -114,7 +125,7 @@
         tee_local $7
         if (result i32)
          block $assembly/index/loadBit|inlined.8 (result i32)
-          i32.const 6656419
+          get_global $assembly/index/headsGridOffset
           get_local $6
           i32.add
           set_local $7
@@ -133,7 +144,7 @@
         i32.ne
         if (result i32)
          block $assembly/index/loadBit|inlined.9 (result i32)
-          i32.const 9076935
+          get_global $assembly/index/newHeadsGridOffset
           get_local $6
           i32.add
           set_local $7
@@ -154,7 +165,7 @@
          set_local $7
          block $assembly/index/loadBit|inlined.10 (result i32)
           get_local $6
-          get_global $assembly/index/copperSize
+          get_global $assembly/index/copperLen
           i32.mul
           set_local $8
           get_local $8
@@ -176,7 +187,7 @@
             block $assembly/index/loadCopper|inlined.1 (result i32)
              block $assembly/index/loadBit|inlined.11 (result i32)
               get_local $6
-              get_global $assembly/index/copperSize
+              get_global $assembly/index/copperLen
               i32.mul
               get_local $9
               i32.const 255
@@ -193,7 +204,7 @@
             end
             set_local $10
             block $assembly/index/loadBit|inlined.13 (result i32)
-             i32.const 6656419
+             get_global $assembly/index/headsGridOffset
              get_local $10
              i32.add
              set_local $11
@@ -232,7 +243,7 @@
          i32.const 0
          i32.gt_s
          if
-          i32.const 9076935
+          get_global $assembly/index/newHeadsGridOffset
           get_local $6
           i32.add
           set_local $9
@@ -243,7 +254,7 @@
           i32.shl
           get_local $10
           i32.store
-          i32.const 8471806
+          get_global $assembly/index/newHeadsArrayOffset
           get_local $0
           i32.add
           i32.const 1
@@ -280,7 +291,7 @@
    end
    unreachable
   end
-  i32.const 8471806
+  get_global $assembly/index/newHeadsArrayOffset
   set_local $2
   get_local $2
   i32.const 2

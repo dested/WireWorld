@@ -1,6 +1,20 @@
 import wireworldtxt from './wireworld.txt';
 
 let instance: any;
+(window as any).webasm = true;
+const copperLen = 9;
+const size = 605129;
+const arrLen = 10000;
+const coppersSize = size * copperLen;
+const headsArrayOffset = coppersSize + size;
+const headsGridOffset = headsArrayOffset + arrLen;
+const tailsArrayOffset = headsGridOffset + size;
+const tailsGridOffset = tailsArrayOffset + arrLen;
+
+const newHeadsArrayOffset = tailsGridOffset + size;
+const newHeadsGridOffset = newHeadsArrayOffset + arrLen;
+const newTailsArrayOffset = newHeadsGridOffset + size;
+const newTailsGridOffset = newTailsArrayOffset + arrLen;
 
 export class StatePosition {
   stateIndex;
@@ -85,20 +99,20 @@ export class Program {
     let totalMs = 0;
     instance.init();
     this.mem32 = new Uint32Array(instance.memory.buffer);
-    const size = Board.boardHeight * Board.boardWidth;
-    const coppersSize = size * 9;
-    const headsArrayOffset = coppersSize + size * 1;
-    const headsGridOffset = coppersSize + size * 2;
-    const tailsArrayOffset = coppersSize + size * 3;
-    const tailsGridOffset = coppersSize + size * 4;
+
     this.mem32[headsArrayOffset] = boardState.headsArray.length;
     this.mem32[tailsArrayOffset] = boardState.tailsArray.length;
+
+    for (let i = 0; i < boardState.headsArray.length; i++) {
+      this.mem32[headsArrayOffset + i + 1] = boardState.headsArray[i];
+    }
+    for (let i = 0; i < boardState.tailsArray.length; i++) {
+      this.mem32[tailsArrayOffset + i + 1] = boardState.tailsArray[i];
+    }
 
     for (let y = 0; y < Board.boardHeight; y++) {
       for (let x = 0; x < Board.boardWidth; x++) {
         const pos = y * Board.boardWidth + x;
-        this.mem32[headsArrayOffset + pos + 1] = boardState.headsArray[pos];
-        this.mem32[tailsArrayOffset + pos + 1] = boardState.tailsArray[pos];
         this.mem32[headsGridOffset + pos] = boardState.headsGrid[pos] ? 1 : 0;
         this.mem32[tailsGridOffset + pos] = boardState.tailsGrid[pos] ? 1 : 0;
       }
@@ -122,6 +136,7 @@ export class Program {
         return;
       }
       const crank = (window as any).crank === true ? 50 : 1;
+
       for (let i = 0; i < crank; i++) {
         const perf = performance.now();
         this.tickBoard();
@@ -129,12 +144,12 @@ export class Program {
         const res = performance.now() - perf;
         totalMs += res;
         ticks++;
-        if (ticks % 50 === 0) {
-          console.log(`MS Per Run: ${totalMs / ticks}`);
+        if (ticks % 100 === 0) {
+          document.getElementById('msper').innerText = `MS Per Run: ${(totalMs / ticks).toFixed(5)}`;
+          totalMs = 0;
+          ticks = 0;
         }
       }
-
-
     }, 1);
     if (draw) {
       canvasBack.width = canvasFront.width = Board.boardWidth * this.magnify;
@@ -166,6 +181,7 @@ export class Program {
         }
 
         boardState = newBoardState;
+        // console.log(boardState.headsArray.length, boardState.tailsArray.length);
         this.drawFront(contextFront, boardState);
       }, 1000 / 60);
     }
@@ -382,21 +398,58 @@ export class Program {
   }
 
   tickBoard() {
-    instance.tick();
-    const size = Board.boardHeight * Board.boardWidth;
-    const coppersSize = size * 9;
-    const headsArrayOffset = coppersSize + size * 1;
-    const headsGridOffset = coppersSize + size * 2;
-    const tailsArrayOffset = coppersSize + size * 3;
-    const tailsGridOffset = coppersSize + size * 4;
+    if ((window as any).webasm) {
+      instance.tick();
+    } else {
+      const loadBit = (offset: number) => {
+        return this.mem32[offset];
+      };
 
-    const newHeadsArrayOffset = coppersSize + size * 5;
-    const newHeadsGridOffset = coppersSize + size * 6;
-    const newTailsArrayOffset = coppersSize + size * 7;
-    const newTailsGridOffset = coppersSize + size * 8;
-    this.mem32.copyWithin(tailsArrayOffset, headsArrayOffset, headsGridOffset + size);
-    this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
-    this.mem32.fill(0, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
+      const storeBit = (offset: number, value: number) => {
+        this.mem32[offset] = value;
+      };
+
+      const loadCopper = (offset: number, pos: number): number => {
+        return loadBit(offset * copperLen + pos + 1);
+      };
+      let newHeadArrayIndex = 0;
+      const hLen = loadBit(headsArrayOffset);
+      for (let index = 1; index <= hLen; index++) {
+        const headKey = loadBit(headsArrayOffset + index);
+        const hCopperLen = loadBit(headKey * copperLen);
+        for (let i = 0; i < hCopperLen; i++) {
+          const copperStateIndex = loadCopper(headKey, i);
+          if (
+            loadBit(tailsGridOffset + copperStateIndex) === 0 &&
+            loadBit(headsGridOffset + copperStateIndex) === 0 &&
+            loadBit(newHeadsGridOffset + copperStateIndex) === 0
+          ) {
+            let headNeighbors = 0;
+            const hnCopperLen = loadBit(copperStateIndex * copperLen);
+            for (let ind2 = 0; ind2 < hnCopperLen; ind2++) {
+              const stateIndex = loadCopper(copperStateIndex, ind2);
+              if (loadBit(headsGridOffset + stateIndex) === 1) {
+                headNeighbors++;
+                if (headNeighbors === 3) {
+                  headNeighbors = 0;
+                  break;
+                }
+              }
+            }
+            if (headNeighbors > 0) {
+              storeBit(newHeadsGridOffset + copperStateIndex, 1);
+              storeBit(newHeadsArrayOffset + newHeadArrayIndex + 1, copperStateIndex);
+              newHeadArrayIndex = newHeadArrayIndex + 1;
+            }
+          }
+        }
+      }
+      storeBit(newHeadsArrayOffset, newHeadArrayIndex);
+    }
+
+    this.mem32.copyWithin(tailsArrayOffset, headsArrayOffset, tailsArrayOffset);
+    this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newTailsArrayOffset);
+    this.mem32.fill(0, newHeadsArrayOffset, newTailsArrayOffset);
   }
 }
 
@@ -488,8 +541,9 @@ fetch('./app/asm/build/optimized.wasm')
 
     return new WebAssembly.Instance(compiled, {
       env: {
-        memory: new WebAssembly.Memory({initial: 900}),
-        abort() {}
+        memory: new WebAssembly.Memory({initial: 121}),
+        abort() {
+        }
       },
       console: {
         logger(arg) {

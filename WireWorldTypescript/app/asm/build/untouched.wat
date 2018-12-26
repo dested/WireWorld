@@ -95,6 +95,8 @@
           get_global $assembly/index/copperLen
           i32.mul
           get_local $5
+          i32.const 255
+          i32.and
           i32.add
           i32.const 1
           i32.add
@@ -183,6 +185,8 @@
               get_global $assembly/index/copperLen
               i32.mul
               get_local $9
+              i32.const 255
+              i32.and
               i32.add
               i32.const 1
               i32.add

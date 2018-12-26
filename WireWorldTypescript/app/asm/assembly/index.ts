@@ -26,7 +26,7 @@ function storeBit(offset: u32, value: u32): void {
 }
 
 @inline
-function loadCopper(offset: u32, pos: u32): u32 {
+function loadCopper(offset: u32, pos: u8): u32 {
   return loadBit(offset * copperLen + pos + 1);
 }
 
@@ -40,7 +40,7 @@ export function tick(): void {
   for (let index: u32 = 1; index <= hLen; ++index) {
     let headKey = loadBit(headsArrayOffset + index);
     let hCopperLen = loadBit(headKey * copperLen);
-    for (let i: u32 = 0; i < hCopperLen; ++i) {
+    for (let i: u8 = 0; i < hCopperLen; ++i) {
       let copperStateIndex = loadCopper(headKey, i);
       if (
         !loadBit(tailsGridOffset + copperStateIndex) &&
@@ -49,7 +49,7 @@ export function tick(): void {
       ) {
         let headNeighbors = 0;
         let hnCopperLen = loadBit(copperStateIndex * copperLen);
-        for (let j: u32 = 0; j < hnCopperLen; ++j) {
+        for (let j: u8 = 0; j < hnCopperLen; ++j) {
           let stateIndex = loadCopper(copperStateIndex, j);
           if (loadBit(headsGridOffset + stateIndex) === 1) {
             ++headNeighbors;

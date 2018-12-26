@@ -116,35 +116,14 @@ export class Program {
       if (down) {
         return;
       }
-      const perf = performance.now();
-      for (let i = 0; i < 1; i++) {
+      for (let i = 0; i < 50; i++) {
+        const perf = performance.now();
         this.tickBoard();
         this.iterations++;
+        const res = performance.now() - perf;
+        totalMs += res;
+        ticks++;
       }
-      const res = performance.now() - perf;
-      totalMs += res;
-      ticks++;
-
-      const newBoardState = new BoardState();
-      newBoardState.headsGrid = new Array(size);
-      newBoardState.tailsGrid = new Array(size);
-      newBoardState.headsArray = [];
-      newBoardState.tailsArray = [];
-      for (let y = 0; y < Board.boardHeight; y++) {
-        for (let x = 0; x < Board.boardWidth; x++) {
-          const pos = y * Board.boardWidth + x;
-          if (this.mem32[pos + headsArrayOffset] !== 0) {
-            newBoardState.headsArray.push(this.mem32[pos + headsArrayOffset]);
-          }
-          if (this.mem32[pos + tailsArrayOffset] !== 0) {
-            newBoardState.tailsArray.push(this.mem32[pos + tailsArrayOffset]);
-          }
-          newBoardState.headsGrid[pos] = this.mem32[pos + headsGridOffset] === 1;
-          newBoardState.tailsGrid[pos] = this.mem32[pos + tailsGridOffset] === 1;
-        }
-      }
-
-      boardState = newBoardState;
 
       if (ticks % 50 === 0) {
         console.log(`MS Per Run: ${totalMs / ticks}`);
@@ -157,6 +136,26 @@ export class Program {
       this.drawBack(contextBack);
       this.drawFront(contextFront, boardState);
       setInterval(() => {
+        const newBoardState = new BoardState();
+        newBoardState.headsGrid = new Array(size);
+        newBoardState.tailsGrid = new Array(size);
+        newBoardState.headsArray = [];
+        newBoardState.tailsArray = [];
+        for (let y = 0; y < Board.boardHeight; y++) {
+          for (let x = 0; x < Board.boardWidth; x++) {
+            const pos = y * Board.boardWidth + x;
+            if (this.mem32[pos + headsArrayOffset] !== 0) {
+              newBoardState.headsArray.push(this.mem32[pos + headsArrayOffset]);
+            }
+            if (this.mem32[pos + tailsArrayOffset] !== 0) {
+              newBoardState.tailsArray.push(this.mem32[pos + tailsArrayOffset]);
+            }
+            newBoardState.headsGrid[pos] = this.mem32[pos + headsGridOffset] === 1;
+            newBoardState.tailsGrid[pos] = this.mem32[pos + tailsGridOffset] === 1;
+          }
+        }
+
+        boardState = newBoardState;
         this.drawFront(contextFront, boardState);
       }, 1000 / 60);
     }
@@ -378,12 +377,16 @@ export class Program {
     const coppersSize = size * 8;
     const headsArrayOffset = coppersSize + size * 1;
     const headsGridOffset = coppersSize + size * 2;
+    const tailsArrayOffset = coppersSize + size * 3;
+    const tailsGridOffset = coppersSize + size * 4;
 
     const newHeadsArrayOffset = coppersSize + size * 5;
+    const newHeadsGridOffset = coppersSize + size * 6;
     const newTailsArrayOffset = coppersSize + size * 7;
-    this.mem32.copyWithin(newTailsArrayOffset, headsArrayOffset, headsGridOffset + size);
-    this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newHeadsArrayOffset + size * 4 + size * 4);
-
+    const newTailsGridOffset = coppersSize + size * 8;
+    this.mem32.copyWithin(tailsArrayOffset, headsArrayOffset, headsGridOffset + size);
+    this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
+    this.mem32.fill(0, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
 
     /**/
     /*

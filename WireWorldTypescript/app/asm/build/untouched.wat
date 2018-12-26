@@ -1,6 +1,6 @@
 (module
  (type $v (func))
- (memory $0 0)
+ (import "env" "memory" (memory $0 0))
  (table $0 1 anyfunc)
  (elem (i32.const 0) $null)
  (global $assembly/index/copperLen i32 (i32.const 8))
@@ -13,8 +13,6 @@
  (global $assembly/index/tailsGridOffset i32 (i32.const 6065290))
  (global $assembly/index/newHeadsArrayOffset i32 (i32.const 6670419))
  (global $assembly/index/newHeadsGridOffset i32 (i32.const 6677419))
- (global $assembly/index/newTailsArrayOffset i32 (i32.const 7282548))
- (global $assembly/index/newTailsGridOffset i32 (i32.const 7289548))
  (global $HEAP_BASE i32 (i32.const 8))
  (export "memory" (memory $0))
  (export "table" (table $0))
@@ -120,8 +118,7 @@
          i32.shl
          i32.load
         end
-        i32.const 0
-        i32.eq
+        i32.eqz
         tee_local $7
         if (result i32)
          block $assembly/index/loadBit|inlined.8 (result i32)
@@ -134,8 +131,7 @@
           i32.shl
           i32.load
          end
-         i32.const 0
-         i32.eq
+         i32.eqz
         else         
          get_local $7
         end
@@ -153,8 +149,7 @@
           i32.shl
           i32.load
          end
-         i32.const 0
-         i32.eq
+         i32.eqz
         else         
          get_local $7
         end

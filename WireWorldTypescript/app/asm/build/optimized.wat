@@ -1,6 +1,6 @@
 (module
  (type $v (func))
- (memory $0 0)
+ (import "env" "memory" (memory $0 0))
  (table $0 1 anyfunc)
  (elem (i32.const 0) $null)
  (export "memory" (memory $0))
@@ -73,7 +73,7 @@
       i32.load
       i32.eqz
       tee_local $0
-      if (result i32)
+      if
        get_local $1
        i32.const 5453161
        i32.add
@@ -81,11 +81,10 @@
        i32.shl
        i32.load
        i32.eqz
-       tee_local $0
-      else       
-       get_local $0
+       set_local $0
       end
-      if (result i32)
+      get_local $0
+      if
        get_local $1
        i32.const 6677419
        i32.add
@@ -93,9 +92,9 @@
        i32.shl
        i32.load
        i32.eqz
-      else       
-       get_local $0
+       set_local $0
       end
+      get_local $0
       if
        i32.const 0
        set_local $0

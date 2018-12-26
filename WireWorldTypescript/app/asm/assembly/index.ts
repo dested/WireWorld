@@ -11,6 +11,7 @@ function storeBit(offset: u32, value: u32): void {
   store<u32>(offset << alignof<u32>(), value);
 }
 
+@inline
 function loadCopper(offset: u32, pos: u8): u32 {
   return loadBit(offset * 8 + pos);
 }

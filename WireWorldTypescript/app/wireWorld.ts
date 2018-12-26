@@ -22,9 +22,10 @@ export class Program {
   magnify = 1;
   private iterations = 0;
   mem32: Uint32Array;
+
   start(draw: boolean) {
     let boardState: BoardState = null;
-    let down = false;
+    const down = false;
     let canvasBack: HTMLCanvasElement;
     let contextBack: CanvasRenderingContext2D;
     let canvasFront: HTMLCanvasElement;
@@ -37,9 +38,9 @@ export class Program {
       canvasFront = document.getElementById('canvasFront') as HTMLCanvasElement;
       contextFront = canvasFront.getContext('2d') as CanvasRenderingContext2D;
 
-      let lastPoint = null;
-      let updatedCoppers = false;
-      canvasFront.onmousedown = a => {
+      const lastPoint = null;
+      const updatedCoppers = false;
+      /*    canvasFront.onmousedown = a => {
         lastPoint = new StatePosition(a.offsetX / this.magnify, a.offsetY / this.magnify);
         down = true;
         a.preventDefault();
@@ -74,7 +75,7 @@ export class Program {
 
           lastPoint = new StatePosition(x, y);
         }
-      };
+      };*/
     }
 
     const board = new Board(wireworldtxt);
@@ -85,16 +86,19 @@ export class Program {
     instance.init();
     this.mem32 = new Uint32Array(instance.memory.buffer);
     const size = Board.boardHeight * Board.boardWidth;
-    const coppersSize = size * 8;
+    const coppersSize = size * 9;
     const headsArrayOffset = coppersSize + size * 1;
-    const tailsArrayOffset = coppersSize + size * 3;
     const headsGridOffset = coppersSize + size * 2;
+    const tailsArrayOffset = coppersSize + size * 3;
     const tailsGridOffset = coppersSize + size * 4;
+    this.mem32[headsArrayOffset] = boardState.headsArray.length;
+    this.mem32[tailsArrayOffset] = boardState.tailsArray.length;
+
     for (let y = 0; y < Board.boardHeight; y++) {
       for (let x = 0; x < Board.boardWidth; x++) {
         const pos = y * Board.boardWidth + x;
-        this.mem32[headsArrayOffset + pos] = boardState.headsArray[pos];
-        this.mem32[tailsArrayOffset + pos] = boardState.tailsArray[pos];
+        this.mem32[headsArrayOffset + pos + 1] = boardState.headsArray[pos];
+        this.mem32[tailsArrayOffset + pos + 1] = boardState.tailsArray[pos];
         this.mem32[headsGridOffset + pos] = boardState.headsGrid[pos] ? 1 : 0;
         this.mem32[tailsGridOffset + pos] = boardState.tailsGrid[pos] ? 1 : 0;
       }
@@ -106,8 +110,9 @@ export class Program {
         if (!Board.coppers[pos]) {
           continue;
         }
+        this.mem32[pos * 9] = Board.coppers[pos].length;
         for (let i = 0; i < Board.coppers[pos].length; i++) {
-          this.mem32[pos * 8 + i] = Board.coppers[pos][i];
+          this.mem32[pos * 9 + i + 1] = Board.coppers[pos][i];
         }
       }
     }
@@ -116,18 +121,20 @@ export class Program {
       if (down) {
         return;
       }
-      for (let i = 0; i < 50; i++) {
+      const crank = (window as any).crank === true ? 50 : 1;
+      for (let i = 0; i < crank; i++) {
         const perf = performance.now();
         this.tickBoard();
         this.iterations++;
         const res = performance.now() - perf;
         totalMs += res;
         ticks++;
+        if (ticks % 50 === 0) {
+          console.log(`MS Per Run: ${totalMs / ticks}`);
+        }
       }
 
-      if (ticks % 50 === 0) {
-        console.log(`MS Per Run: ${totalMs / ticks}`);
-      }
+
     }, 1);
     if (draw) {
       canvasBack.width = canvasFront.width = Board.boardWidth * this.magnify;
@@ -141,15 +148,18 @@ export class Program {
         newBoardState.tailsGrid = new Array(size);
         newBoardState.headsArray = [];
         newBoardState.tailsArray = [];
+        const hLen = this.mem32[headsArrayOffset];
+        for (let i = 0; i < hLen; i++) {
+          newBoardState.headsArray.push(this.mem32[headsArrayOffset + i + 1]);
+        }
+        const tLen = this.mem32[tailsArrayOffset];
+        for (let i = 0; i < tLen; i++) {
+          newBoardState.tailsArray.push(this.mem32[tailsArrayOffset + i + 1]);
+        }
+
         for (let y = 0; y < Board.boardHeight; y++) {
           for (let x = 0; x < Board.boardWidth; x++) {
             const pos = y * Board.boardWidth + x;
-            if (this.mem32[pos + headsArrayOffset] !== 0) {
-              newBoardState.headsArray.push(this.mem32[pos + headsArrayOffset]);
-            }
-            if (this.mem32[pos + tailsArrayOffset] !== 0) {
-              newBoardState.tailsArray.push(this.mem32[pos + tailsArrayOffset]);
-            }
             newBoardState.headsGrid[pos] = this.mem32[pos + headsGridOffset] === 1;
             newBoardState.tailsGrid[pos] = this.mem32[pos + tailsGridOffset] === 1;
           }
@@ -374,7 +384,7 @@ export class Program {
   tickBoard() {
     instance.tick();
     const size = Board.boardHeight * Board.boardWidth;
-    const coppersSize = size * 8;
+    const coppersSize = size * 9;
     const headsArrayOffset = coppersSize + size * 1;
     const headsGridOffset = coppersSize + size * 2;
     const tailsArrayOffset = coppersSize + size * 3;
@@ -387,85 +397,6 @@ export class Program {
     this.mem32.copyWithin(tailsArrayOffset, headsArrayOffset, headsGridOffset + size);
     this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
     this.mem32.fill(0, newHeadsArrayOffset, newHeadsArrayOffset + size * 2);
-
-    /**/
-    /*
-    const loadBit = (offset: number) => {
-      return this.mem32[offset];
-    };
-
-    const storeBit = (offset: number, value: number) => {
-      this.mem32[offset] = value;
-    };
-    const loadCopper = (offset: number) => {
-      const pos0 = this.mem32[offset * 8 + 0];
-      if (pos0 === 0) {
-        return [];
-      }
-      const pos1 = this.mem32[offset * 8 + 1];
-      if (pos1 === 0) {
-        return [pos0];
-      }
-      const pos2 = this.mem32[offset * 8 + 2];
-      if (pos2 === 0) {
-        return [pos0, pos1];
-      }
-      const pos3 = this.mem32[offset * 8 + 3];
-      if (pos3 === 0) {
-        return [pos0, pos1, pos2];
-      }
-      const pos4 = this.mem32[offset * 8 + 4];
-      if (pos4 === 0) {
-        return [pos0, pos1, pos2, pos3];
-      }
-      const pos5 = this.mem32[offset * 8 + 5];
-      if (pos5 === 0) {
-        return [pos0, pos1, pos2, pos3, pos4];
-      }
-      const pos6 = this.mem32[offset * 8 + 6];
-      if (pos6 === 0) {
-        return [pos0, pos1, pos2, pos3, pos4, pos5];
-      }
-      const pos7 = this.mem32[offset * 8 + 7];
-      if (pos7 === 0) {
-        return [pos0, pos1, pos2, pos3, pos4, pos5, pos6];
-      }
-      return [pos0, pos1, pos2, pos3, pos4, pos5, pos6, pos7];
-    };
-    let newHeadArrayIndex = 0;
-    for (let index = 0; index < size; index++) {
-      const headKey = loadBit(headsArrayOffset + index);
-      if (headKey === 0) {
-        break;
-      }
-      const positions = loadCopper(headKey);
-      for (let i = 0, posLength = positions.length; i < posLength; i++) {
-        const copperStateIndex = positions[i];
-        if (
-          loadBit(tailsGridOffset + copperStateIndex) === 0 &&
-          loadBit(headsGridOffset + copperStateIndex) === 0 &&
-          loadBit(newHeadsGridOffset + copperStateIndex) === 0
-        ) {
-          const states = loadCopper(copperStateIndex);
-          let headNeighbors = 0;
-          for (let ind2 = 0, statesLen = states.length; ind2 < statesLen; ind2++) {
-            const stateIndex = states[ind2];
-            if (loadBit(headsGridOffset + stateIndex) === 1) {
-              headNeighbors++;
-              if (headNeighbors === 3) {
-                headNeighbors = 0;
-                break;
-              }
-            }
-          }
-          if (headNeighbors > 0) {
-            storeBit(newHeadsGridOffset + copperStateIndex, 1);
-            storeBit(newHeadsArrayOffset + newHeadArrayIndex, copperStateIndex);
-            newHeadArrayIndex = newHeadArrayIndex + 1;
-          }
-        }
-      }
-    }*/
   }
 }
 
@@ -557,7 +488,7 @@ fetch('./app/asm/build/optimized.wasm')
 
     return new WebAssembly.Instance(compiled, {
       env: {
-        memory: new WebAssembly.Memory({initial: 800}),
+        memory: new WebAssembly.Memory({initial: 900}),
         abort() {}
       },
       console: {

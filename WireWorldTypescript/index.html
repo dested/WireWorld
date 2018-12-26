@@ -4,7 +4,7 @@
     <style>
         body {
             padding: 50px;
-            background-color:black;
+            background-color: black;
             font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
         }
 
@@ -39,12 +39,17 @@
             left: 0;
             z-index: 0;
         }
+
         /* To remove the scrollbars */
     </style>
 </head>
 <body>
 <canvas id="canvasBack"></canvas>
 <canvas id="canvasFront"></canvas>
+<div style="color:white; position:absolute">
+    <label for="cb">Crank</label>
+    <input id="cb" type="checkbox" onchange="window.crank=event.target.checked">
+</div>
 
 <script src="dist/main.js"></script>
 </body>

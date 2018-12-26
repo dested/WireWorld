@@ -1,9 +1,9 @@
 (module
  (type $v (func))
- (type $iii (func (param i32 i32) (result i32)))
  (memory $0 0)
  (table $0 1 anyfunc)
  (elem (i32.const 0) $null)
+ (global $assembly/index/copperSize i32 (i32.const 9))
  (global $HEAP_BASE i32 (i32.const 8))
  (export "memory" (memory $0))
  (export "table" (table $0))
@@ -14,22 +14,7 @@
   grow_memory
   drop
  )
- (func $assembly/index/loadCopper (; 1 ;) (type $iii) (param $0 i32) (param $1 i32) (result i32)
-  (local $2 i32)
-  get_local $0
-  i32.const 8
-  i32.mul
-  get_local $1
-  i32.const 255
-  i32.and
-  i32.add
-  set_local $2
-  get_local $2
-  i32.const 2
-  i32.shl
-  i32.load
- )
- (func $assembly/index/tick (; 2 ;) (type $v)
+ (func $assembly/index/tick (; 1 ;) (type $v)
   (local $0 i32)
   (local $1 i32)
   (local $2 i32)
@@ -39,75 +24,101 @@
   (local $6 i32)
   (local $7 i32)
   (local $8 i32)
+  (local $9 i32)
+  (local $10 i32)
+  (local $11 i32)
   i32.const 0
   set_local $0
-  block $break|0
-   i32.const 0
+  block $assembly/index/loadBit|inlined.0 (result i32)
+   i32.const 6051290
    set_local $1
+   get_local $1
+   i32.const 2
+   i32.shl
+   i32.load
+  end
+  set_local $1
+  block $break|0
+   i32.const 1
+   set_local $2
    loop $repeat|0
+    get_local $2
     get_local $1
-    i32.const 605129
-    i32.lt_s
+    i32.le_u
     i32.eqz
     br_if $break|0
     block
-     block $assembly/index/loadBit|inlined.0 (result i32)
-      i32.const 5446161
-      get_local $1
-      i32.add
-      set_local $2
+     block $assembly/index/loadBit|inlined.1 (result i32)
+      i32.const 6051290
       get_local $2
+      i32.add
+      set_local $3
+      get_local $3
       i32.const 2
       i32.shl
       i32.load
      end
-     set_local $2
-     get_local $2
-     i32.const 0
-     i32.eq
-     if
-      br $break|0
+     set_local $3
+     block $assembly/index/loadBit|inlined.2 (result i32)
+      get_local $3
+      get_global $assembly/index/copperSize
+      i32.mul
+      set_local $4
+      get_local $4
+      i32.const 2
+      i32.shl
+      i32.load
      end
+     set_local $4
      block $break|1
       i32.const 0
-      set_local $3
+      set_local $5
       loop $repeat|1
-       get_local $3
-       i32.const 8
+       get_local $5
+       get_local $4
        i32.lt_u
        i32.eqz
        br_if $break|1
        block
-        get_local $2
-        get_local $3
-        call $assembly/index/loadCopper
-        set_local $4
-        get_local $4
-        i32.const 0
-        i32.eq
-        if
-         br $break|1
+        block $assembly/index/loadCopper|inlined.0 (result i32)
+         block $assembly/index/loadBit|inlined.3 (result i32)
+          get_local $3
+          get_global $assembly/index/copperSize
+          i32.mul
+          get_local $5
+          i32.const 255
+          i32.and
+          i32.add
+          i32.const 1
+          i32.add
+          set_local $6
+          get_local $6
+          i32.const 2
+          i32.shl
+          i32.load
+         end
         end
-        block $assembly/index/loadBit|inlined.5 (result i32)
-         i32.const 7261548
-         get_local $4
+        set_local $6
+        block $assembly/index/loadBit|inlined.7 (result i32)
+         i32.const 7866677
+         get_local $6
          i32.add
-         set_local $5
-         get_local $5
+         set_local $7
+         get_local $7
          i32.const 2
          i32.shl
          i32.load
         end
         i32.const 0
         i32.eq
-        tee_local $5
+        tee_local $7
         if (result i32)
-         block $assembly/index/loadBit|inlined.6 (result i32)
-          i32.const 6051290
-          get_local $4
+         block $assembly/index/loadBit|inlined.8 (result i32)
+          i32.const 6656419
+          get_local $6
           i32.add
-          set_local $5
-          get_local $5
+          set_local $7
+          get_local $7
           i32.const 2
           i32.shl
           i32.load
@@ -115,18 +126,18 @@
          i32.const 0
          i32.eq
         else         
-         get_local $5
+         get_local $7
         end
-        tee_local $5
+        tee_local $7
         i32.const 0
         i32.ne
         if (result i32)
-         block $assembly/index/loadBit|inlined.7 (result i32)
-          i32.const 8471806
-          get_local $4
+         block $assembly/index/loadBit|inlined.9 (result i32)
+          i32.const 9076935
+          get_local $6
           i32.add
-          set_local $5
-          get_local $5
+          set_local $7
+          get_local $7
           i32.const 2
           i32.shl
           i32.load
@@ -134,39 +145,59 @@
          i32.const 0
          i32.eq
         else         
-         get_local $5
+         get_local $7
         end
         i32.const 0
         i32.ne
         if
          i32.const 0
-         set_local $5
+         set_local $7
+         block $assembly/index/loadBit|inlined.10 (result i32)
+          get_local $6
+          get_global $assembly/index/copperSize
+          i32.mul
+          set_local $8
+          get_local $8
+          i32.const 2
+          i32.shl
+          i32.load
+         end
+         set_local $8
          block $break|2
           i32.const 0
-          set_local $6
+          set_local $9
           loop $repeat|2
-           get_local $6
-           i32.const 8
+           get_local $9
+           get_local $8
            i32.lt_u
            i32.eqz
            br_if $break|2
            block
-            get_local $4
-            get_local $6
-            call $assembly/index/loadCopper
-            set_local $7
-            get_local $7
-            i32.const 0
-            i32.eq
-            if
-             br $break|2
+            block $assembly/index/loadCopper|inlined.1 (result i32)
+             block $assembly/index/loadBit|inlined.11 (result i32)
+              get_local $6
+              get_global $assembly/index/copperSize
+              i32.mul
+              get_local $9
+              i32.const 255
+              i32.and
+              i32.add
+              i32.const 1
+              i32.add
+              set_local $10
+              get_local $10
+              i32.const 2
+              i32.shl
+              i32.load
+             end
             end
-            block $assembly/index/loadBit|inlined.9 (result i32)
-             i32.const 6051290
-             get_local $7
+            set_local $10
+            block $assembly/index/loadBit|inlined.13 (result i32)
+             i32.const 6656419
+             get_local $10
              i32.add
-             set_local $8
-             get_local $8
+             set_local $11
+             get_local $11
              i32.const 2
              i32.shl
              i32.load
@@ -174,52 +205,54 @@
             i32.const 1
             i32.eq
             if
-             get_local $5
+             get_local $7
              i32.const 1
              i32.add
-             set_local $5
-             get_local $5
+             set_local $7
+             get_local $7
              i32.const 3
              i32.eq
              if
               i32.const 0
-              set_local $5
+              set_local $7
               br $break|2
              end
             end
            end
-           get_local $6
+           get_local $9
            i32.const 1
            i32.add
-           set_local $6
+           set_local $9
            br $repeat|2
            unreachable
           end
           unreachable
          end
-         get_local $5
+         get_local $7
          i32.const 0
          i32.gt_s
          if
-          i32.const 8471806
-          get_local $4
-          i32.add
-          set_local $6
-          i32.const 1
-          set_local $7
+          i32.const 9076935
           get_local $6
+          i32.add
+          set_local $9
+          i32.const 1
+          set_local $10
+          get_local $9
           i32.const 2
           i32.shl
-          get_local $7
+          get_local $10
           i32.store
-          i32.const 7866677
+          i32.const 8471806
           get_local $0
           i32.add
-          set_local $7
-          get_local $7
+          i32.const 1
+          i32.add
+          set_local $10
+          get_local $10
           i32.const 2
           i32.shl
-          get_local $4
+          get_local $6
           i32.store
           get_local $0
           i32.const 1
@@ -228,26 +261,33 @@
          end
         end
        end
-       get_local $3
+       get_local $5
        i32.const 1
        i32.add
-       set_local $3
+       set_local $5
        br $repeat|1
        unreachable
       end
       unreachable
      end
     end
-    get_local $1
+    get_local $2
     i32.const 1
     i32.add
-    set_local $1
+    set_local $2
     br $repeat|0
     unreachable
    end
    unreachable
   end
+  i32.const 8471806
+  set_local $2
+  get_local $2
+  i32.const 2
+  i32.shl
+  get_local $0
+  i32.store
  )
- (func $null (; 3 ;) (type $v)
+ (func $null (; 2 ;) (type $v)
  )
 )

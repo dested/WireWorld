@@ -1,9 +1,9 @@
 @external('console', 'logger')
 declare function logger(offset: usize): void
 
-const copperLen: u32 = 9;
+const copperLen: u32 = 8;
 const size = 605129;
-const arrLen = 10000;
+const arrLen = 7000;
 const coppersSize = size * copperLen;
 const headsArrayOffset = coppersSize + size;
 const headsGridOffset = headsArrayOffset + arrLen;
@@ -14,7 +14,6 @@ const newHeadsArrayOffset = tailsGridOffset + size;
 const newHeadsGridOffset = newHeadsArrayOffset + arrLen;
 const newTailsArrayOffset = newHeadsGridOffset + size;
 const newTailsGridOffset = newTailsArrayOffset + arrLen;
-
 
 
 @inline
@@ -37,9 +36,6 @@ export function init(): void {
 }
 
 export function tick(): void {
-
-
-  /**/
   let newHeadArrayIndex = 0;
   let hLen: u32 = loadBit(headsArrayOffset);
   for (let index: u32 = 1; index <= hLen; index++) {

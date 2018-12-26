@@ -32,9 +32,9 @@ module.exports = env => {
           loader: 'raw-loader'
         },
         {
-          type: "javascript/auto",
+          type: 'javascript/auto',
           test: /\.wasm/,
-          loaders: ['wasm-loader']
+          loaders: ['arraybuffer-loader']
         },
         {
           test: /\.less$/,

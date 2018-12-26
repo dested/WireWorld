@@ -1,6 +1,6 @@
 declare module '*.txt' {
   export default '';
 }
-declare module '*/untouched.wasm' {
+declare module '*/optimized.wasm' {
  export default '' as any;
 }

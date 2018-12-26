@@ -2,9 +2,9 @@ import wireworldtxt from './wireworld.txt';
 
 let instance: any;
 (window as any).webasm = true;
-const copperLen = 9;
+const copperLen = 8;
 const size = 605129;
-const arrLen = 10000;
+const arrLen = 7000;
 const coppersSize = size * copperLen;
 const headsArrayOffset = coppersSize + size;
 const headsGridOffset = headsArrayOffset + arrLen;
@@ -118,15 +118,16 @@ export class Program {
       }
     }
 
+
     for (let y = 0; y < Board.boardHeight; y++) {
       for (let x = 0; x < Board.boardWidth; x++) {
         const pos = y * Board.boardWidth + x;
         if (!Board.coppers[pos]) {
           continue;
         }
-        this.mem32[pos * 9] = Board.coppers[pos].length;
+        this.mem32[pos * copperLen] = Board.coppers[pos].length;
         for (let i = 0; i < Board.coppers[pos].length; i++) {
-          this.mem32[pos * 9 + i + 1] = Board.coppers[pos][i];
+          this.mem32[pos * copperLen + i + 1] = Board.coppers[pos][i];
         }
       }
     }
@@ -534,12 +535,10 @@ export class BoardState {
   }
 }
 
-fetch('./app/asm/build/optimized.wasm')
-  .then(response => response.arrayBuffer())
-  .then(buffer => {
-    const compiled = new WebAssembly.Module(buffer);
-
-    return new WebAssembly.Instance(compiled, {
+import('./asm/build/optimized.wasm')
+  .then(result => {
+    const module = new WebAssembly.Module(result.default);
+    return new WebAssembly.Instance(module, {
       env: {
         memory: new WebAssembly.Memory({initial: 121}),
         abort() {

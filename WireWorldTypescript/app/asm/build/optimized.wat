@@ -23,7 +23,7 @@
   (local $7 i32)
   (local $8 i32)
   (local $9 i32)
-  i32.const 24205160
+  i32.const 21784644
   i32.load
   set_local $6
   i32.const 1
@@ -35,15 +35,13 @@
     i32.gt_u
     br_if $break|0
     get_local $3
-    i32.const 6051290
+    i32.const 5446161
     i32.add
     i32.const 2
     i32.shl
     i32.load
     tee_local $7
-    i32.const 9
-    i32.mul
-    i32.const 2
+    i32.const 5
     i32.shl
     i32.load
     set_local $8
@@ -55,12 +53,12 @@
       get_local $8
       i32.ge_u
       br_if $break|1
-      get_local $7
-      i32.const 9
-      i32.mul
       get_local $4
       i32.const 255
       i32.and
+      get_local $7
+      i32.const 3
+      i32.shl
       i32.add
       i32.const 1
       i32.add
@@ -68,7 +66,7 @@
       i32.shl
       i32.load
       tee_local $1
-      i32.const 6676419
+      i32.const 6065290
       i32.add
       i32.const 2
       i32.shl
@@ -77,7 +75,7 @@
       tee_local $0
       if (result i32)
        get_local $1
-       i32.const 6061290
+       i32.const 5453161
        i32.add
        i32.const 2
        i32.shl
@@ -89,7 +87,7 @@
       end
       if (result i32)
        get_local $1
-       i32.const 7291548
+       i32.const 6677419
        i32.add
        i32.const 2
        i32.shl
@@ -102,9 +100,7 @@
        i32.const 0
        set_local $0
        get_local $1
-       i32.const 9
-       i32.mul
-       i32.const 2
+       i32.const 5
        i32.shl
        i32.load
        set_local $9
@@ -116,19 +112,19 @@
          get_local $9
          i32.ge_u
          br_if $break|2
-         get_local $1
-         i32.const 9
-         i32.mul
          get_local $5
          i32.const 255
          i32.and
+         get_local $1
+         i32.const 3
+         i32.shl
          i32.add
          i32.const 1
          i32.add
          i32.const 2
          i32.shl
          i32.load
-         i32.const 6061290
+         i32.const 5453161
          i32.add
          i32.const 2
          i32.shl
@@ -160,14 +156,14 @@
        i32.gt_s
        if
         get_local $1
-        i32.const 7291548
+        i32.const 6677419
         i32.add
         i32.const 2
         i32.shl
         i32.const 1
         i32.store
         get_local $2
-        i32.const 7281549
+        i32.const 6670420
         i32.add
         i32.const 2
         i32.shl
@@ -193,7 +189,7 @@
     br $repeat|0
    end
   end
-  i32.const 29126192
+  i32.const 26681676
   get_local $2
   i32.store
  )

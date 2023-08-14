@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wireworld</title>
+    <style>
+      body {
+        padding: 50px;
+        background-color: black;
+        font:
+          14px 'Lucida Grande',
+          Helvetica,
+          Arial,
+          sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+      }
+
+      /* to remove the top and left whitespace */
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+      }
+
+      /* just to be sure these are full screen*/
+
+      canvas {
+        display: block;
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvasBack"></canvas>
+    <canvas id="canvasFront"></canvas>
+    <script type="module" src="/src/entry.ts"></script>
+    <script>
+      (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        (i[r] =
+          i[r] ||
+          function () {
+            (i[r].q = i[r].q || []).push(arguments);
+          }),
+          (i[r].l = 1 * new Date());
+        (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m);
+      })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+      ga('create', 'UA-30696843-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>

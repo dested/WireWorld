@@ -1,7 +1,6 @@
-import wireworldtxt from './wireworld.txt';
+import {runFast, runFastTicks, timePerTick} from './common.ts';
+import wireworldtxt from './wireworld.txt?raw';
 
-let instance: any;
-(window as any).webasm = true;
 const copperLen = 8;
 const size = 605129;
 const arrLen = 7000;
@@ -27,69 +26,41 @@ export class StatePosition {
     return z % Board.boardWidth;
   }
 
-  constructor(public x: number, public y: number) {
+  constructor(
+    public x: number,
+    public y: number,
+  ) {
     this.stateIndex = this.x + this.y * Board.boardWidth;
   }
 }
 
-export class Program {
+export class WireworldJavascript {
   magnify = 1;
   private iterations = 0;
   mem32: Uint32Array;
 
-  start(draw: boolean) {
+  timeout = 0;
+  drawTimeout = 0;
+  stop() {
+    clearInterval(this.timeout);
+    clearInterval(this.drawTimeout);
+    this.mem32 = null;
+  }
+
+  start() {
     let boardState: BoardState = null;
     const down = false;
     let canvasBack: HTMLCanvasElement;
     let contextBack: CanvasRenderingContext2D;
     let canvasFront: HTMLCanvasElement;
     let contextFront: CanvasRenderingContext2D;
-
+    const draw = true;
     if (draw) {
       canvasBack = document.getElementById('canvasBack') as HTMLCanvasElement;
       contextBack = canvasBack.getContext('2d') as CanvasRenderingContext2D;
 
       canvasFront = document.getElementById('canvasFront') as HTMLCanvasElement;
       contextFront = canvasFront.getContext('2d') as CanvasRenderingContext2D;
-
-      const lastPoint = null;
-      const updatedCoppers = false;
-      /*    canvasFront.onmousedown = a => {
-        lastPoint = new StatePosition(a.offsetX / this.magnify, a.offsetY / this.magnify);
-        down = true;
-        a.preventDefault();
-      };
-
-      canvasFront.onmouseup = a => {
-        lastPoint = null;
-        down = false;
-        if (updatedCoppers) {
-          this.buildCoppers();
-          updatedCoppers = false;
-        }
-        a.preventDefault();
-      };
-      canvasFront.oncontextmenu = a => a.preventDefault();
-
-      canvasFront.onmousemove = event => {
-        event.preventDefault();
-        if (boardState != null && down) {
-          const x = event.offsetX / this.magnify;
-          const y = event.offsetY / this.magnify;
-          const points: {[key: number]: boolean} = {};
-
-          for (const position of this.getPointsOnLine(lastPoint.x, lastPoint.y, x, y)) {
-            this.updateSpot(position, event.which === 3, event.ctrlKey, boardState);
-            points[position.stateIndex] = true;
-          }
-          if (event.ctrlKey) {
-            updatedCoppers = true;
-            this.redrawBack(contextBack, points);
-          }
-
-          lastPoint = new StatePosition(x, y);
-        }
-      };*/
     }
 
     const board = new Board(wireworldtxt);
@@ -97,8 +68,7 @@ export class Program {
     boardState = this.generateInitialBoardState();
     let ticks = 0;
     let totalMs = 0;
-    instance.init();
-    this.mem32 = new Uint32Array(instance.memory.buffer);
+    this.mem32 = new Uint32Array(121 * 64 * 1024);
 
     this.mem32[headsArrayOffset] = boardState.headsArray.length;
     this.mem32[tailsArrayOffset] = boardState.tailsArray.length;
@@ -118,7 +88,6 @@ export class Program {
       }
     }
 
-
     for (let y = 0; y < Board.boardHeight; y++) {
       for (let x = 0; x < Board.boardWidth; x++) {
         const pos = y * Board.boardWidth + x;
@@ -132,11 +101,11 @@ export class Program {
       }
     }
 
-    setInterval(() => {
+    this.timeout = setInterval(() => {
       if (down) {
         return;
       }
-      const crank = (window as any).crank === true ? 50 : 1;
+      const crank = runFast.peek() ? runFastTicks.peek() : 1;
 
       for (let i = 0; i < crank; i++) {
         const perf = performance.now();
@@ -146,7 +115,7 @@ export class Program {
         totalMs += res;
         ticks++;
         if (ticks % 100 === 0) {
-          document.getElementById('msper').innerText = `MS Per Run: ${(totalMs / ticks).toFixed(5)}`;
+          timePerTick.value = totalMs / ticks;
           totalMs = 0;
           ticks = 0;
         }
@@ -158,7 +127,7 @@ export class Program {
 
       this.drawBack(contextBack);
       this.drawFront(contextFront, boardState);
-      setInterval(() => {
+      this.drawTimeout = setInterval(() => {
         const newBoardState = new BoardState();
         newBoardState.headsGrid = new Array(size);
         newBoardState.tailsGrid = new Array(size);
@@ -185,83 +154,6 @@ export class Program {
         // console.log(boardState.headsArray.length, boardState.tailsArray.length);
         this.drawFront(contextFront, boardState);
       }, 1000 / 60);
-    }
-  }
-
-  getPointsOnLine(x0: number, y0: number, x1: number, y1: number): StatePosition[] {
-    const steep = Math.abs(y1 - y0) > Math.abs(x1 - x0);
-    if (steep) {
-      let t;
-      t = x0; // swap x0 and y0
-      x0 = y0;
-      y0 = t;
-      t = x1; // swap x1 and y1
-      x1 = y1;
-      y1 = t;
-    }
-    if (x0 > x1) {
-      let t;
-      t = x0; // swap x0 and x1
-      x0 = x1;
-      x1 = t;
-      t = y0; // swap y0 and y1
-      y0 = y1;
-      y1 = t;
-    }
-    const dx = x1 - x0;
-    const dy = Math.abs(y1 - y0);
-    let error = dx / 2;
-    const ystep = y0 < y1 ? 1 : -1;
-    let y = y0;
-    const points: StatePosition[] = [];
-    for (let x = x0; x <= x1; x++) {
-      points.push(new StatePosition(steep ? y : x, steep ? x : y));
-      error = error - dy;
-      if (error < 0) {
-        y += ystep;
-        error += dx;
-      }
-    }
-    return points;
-  }
-
-  updateSpot(statePosition: StatePosition, rightClick: boolean, control: boolean, boardState: BoardState): void {
-    if (control) {
-      if (!rightClick) {
-        Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
-        Board.copperGrid[statePosition.stateIndex] = true;
-      } else {
-        Board.coppers = new Array(Board.boardWidth * Board.boardHeight);
-        Board.copperGrid[statePosition.stateIndex] = false;
-        boardState.headsGrid[statePosition.stateIndex] = false;
-        boardState.tailsGrid[statePosition.stateIndex] = false;
-
-        boardState.headsArray.splice(boardState.headsArray.indexOf(statePosition.stateIndex), 1);
-      }
-    } else {
-      if (Board.copperGrid[statePosition.stateIndex]) {
-        if (!rightClick) {
-          boardState.headsArray.push(statePosition.stateIndex);
-          boardState.headsGrid[statePosition.stateIndex] = true;
-        } else {
-          for (let index = boardState.headsArray.length - 1; index >= 0; index--) {
-            const position = boardState.headsArray[index];
-            if (position === statePosition.stateIndex) {
-              boardState.headsArray.splice(boardState.headsArray.indexOf(position), 1);
-              boardState.headsGrid[position] = false;
-              break;
-            }
-          }
-          for (let index = boardState.tailsArray.length - 1; index >= 0; index--) {
-            const position = boardState.tailsArray[index];
-            if (position === statePosition.stateIndex) {
-              boardState.tailsArray.splice(boardState.tailsArray.indexOf(position), 1);
-              boardState.tailsGrid[position] = false;
-              break;
-            }
-          }
-        }
-      }
     }
   }
 
@@ -308,7 +200,7 @@ export class Program {
         StatePosition.getX(heads[index]) * this.magnify,
         StatePosition.getY(heads[index]) * this.magnify,
         this.magnify,
-        this.magnify
+        this.magnify,
       );
     }
     context.fillStyle = '#89D2FF';
@@ -317,7 +209,7 @@ export class Program {
         StatePosition.getX(tails[index]) * this.magnify,
         StatePosition.getY(tails[index]) * this.magnify,
         this.magnify,
-        this.magnify
+        this.magnify,
       );
     }
     context.restore();
@@ -332,7 +224,7 @@ export class Program {
     boardState.tailsGrid = new Array(boardWidth * boardHeight);
     boardState.tailsArray = new Array(boardWidth * boardHeight);
 
-    Program.neighbors = [
+    WireworldJavascript.neighbors = [
       new StatePosition(-1, -1),
       new StatePosition(-1, 0),
       new StatePosition(-1, 1),
@@ -340,7 +232,7 @@ export class Program {
       new StatePosition(0, 1),
       new StatePosition(1, -1),
       new StatePosition(1, 0),
-      new StatePosition(1, 1)
+      new StatePosition(1, 1),
     ];
 
     Board.copperGrid = new Array(boardWidth * boardHeight);
@@ -388,8 +280,8 @@ export class Program {
 
     const statePositions: number[] = [];
 
-    for (let index = 0; index < Program.neighbors.length; index++) {
-      const statePosition = Program.neighbors[index];
+    for (let index = 0; index < WireworldJavascript.neighbors.length; index++) {
+      const statePosition = WireworldJavascript.neighbors[index];
       const stateIndex = x + statePosition.x + (y + statePosition.y) * boardWidth;
       if (Board.copperGrid[stateIndex]) {
         statePositions.push(new StatePosition(x + statePosition.x, y + statePosition.y).stateIndex);
@@ -399,54 +291,50 @@ export class Program {
   }
 
   tickBoard() {
-    if ((window as any).webasm) {
-      instance.tick();
-    } else {
-      const loadBit = (offset: number) => {
-        return this.mem32[offset];
-      };
+    const loadBit = (offset: number) => {
+      return this.mem32[offset];
+    };
 
-      const storeBit = (offset: number, value: number) => {
-        this.mem32[offset] = value;
-      };
+    const storeBit = (offset: number, value: number) => {
+      this.mem32[offset] = value;
+    };
 
-      const loadCopper = (offset: number, pos: number): number => {
-        return loadBit(offset * copperLen + pos + 1);
-      };
-      let newHeadArrayIndex = 0;
-      const hLen = loadBit(headsArrayOffset);
-      for (let index = 1; index <= hLen; index++) {
-        const headKey = loadBit(headsArrayOffset + index);
-        const hCopperLen = loadBit(headKey * copperLen);
-        for (let i = 0; i < hCopperLen; i++) {
-          const copperStateIndex = loadCopper(headKey, i);
-          if (
-            loadBit(tailsGridOffset + copperStateIndex) === 0 &&
-            loadBit(headsGridOffset + copperStateIndex) === 0 &&
-            loadBit(newHeadsGridOffset + copperStateIndex) === 0
-          ) {
-            let headNeighbors = 0;
-            const hnCopperLen = loadBit(copperStateIndex * copperLen);
-            for (let ind2 = 0; ind2 < hnCopperLen; ind2++) {
-              const stateIndex = loadCopper(copperStateIndex, ind2);
-              if (loadBit(headsGridOffset + stateIndex) === 1) {
-                headNeighbors++;
-                if (headNeighbors === 3) {
-                  headNeighbors = 0;
-                  break;
-                }
+    const loadCopper = (offset: number, pos: number): number => {
+      return loadBit(offset * copperLen + pos + 1);
+    };
+    let newHeadArrayIndex = 0;
+    const hLen = loadBit(headsArrayOffset);
+    for (let index = 1; index <= hLen; index++) {
+      const headKey = loadBit(headsArrayOffset + index);
+      const hCopperLen = loadBit(headKey * copperLen);
+      for (let i = 0; i < hCopperLen; i++) {
+        const copperStateIndex = loadCopper(headKey, i);
+        if (
+          loadBit(tailsGridOffset + copperStateIndex) === 0 &&
+          loadBit(headsGridOffset + copperStateIndex) === 0 &&
+          loadBit(newHeadsGridOffset + copperStateIndex) === 0
+        ) {
+          let headNeighbors = 0;
+          const hnCopperLen = loadBit(copperStateIndex * copperLen);
+          for (let ind2 = 0; ind2 < hnCopperLen; ind2++) {
+            const stateIndex = loadCopper(copperStateIndex, ind2);
+            if (loadBit(headsGridOffset + stateIndex) === 1) {
+              headNeighbors++;
+              if (headNeighbors === 3) {
+                headNeighbors = 0;
+                break;
               }
             }
-            if (headNeighbors > 0) {
-              storeBit(newHeadsGridOffset + copperStateIndex, 1);
-              storeBit(newHeadsArrayOffset + newHeadArrayIndex + 1, copperStateIndex);
-              newHeadArrayIndex = newHeadArrayIndex + 1;
-            }
+          }
+          if (headNeighbors > 0) {
+            storeBit(newHeadsGridOffset + copperStateIndex, 1);
+            storeBit(newHeadsArrayOffset + newHeadArrayIndex + 1, copperStateIndex);
+            newHeadArrayIndex = newHeadArrayIndex + 1;
           }
         }
       }
-      storeBit(newHeadsArrayOffset, newHeadArrayIndex);
     }
+    storeBit(newHeadsArrayOffset, newHeadArrayIndex);
 
     this.mem32.copyWithin(tailsArrayOffset, headsArrayOffset, tailsArrayOffset);
     this.mem32.copyWithin(headsArrayOffset, newHeadsArrayOffset, newTailsArrayOffset);
@@ -455,8 +343,8 @@ export class Program {
 }
 
 export class Board {
-  static boardHeight;
-  static boardWidth;
+  static boardHeight: number;
+  static boardWidth: number;
   static initialStates: WireState[];
   static coppers: number[][];
   static copperGrid: boolean[];
@@ -512,7 +400,7 @@ export enum WireState {
 
   Tail = 2,
 
-  Copper = 3
+  Copper = 3,
 }
 
 export class BoardState {
@@ -533,26 +421,3 @@ export class BoardState {
     this.headsArray = [];
   }
 }
-
-import('./asm/build/optimized.wasm')
-  .then(result => {
-    const module = new WebAssembly.Module(result.default);
-    return new WebAssembly.Instance(module, {
-      env: {
-        memory: new WebAssembly.Memory({ initial: 121 }),
-        abort(_msg, _file, line, column) {
-          console.error("abort called at index.ts:" + line + ":" + column);
-        }
-      },
-      console: {
-        logger(arg) {
-          console.log(arg);
-        }
-      },
-      config: {}
-    });
-  })
-  .then(module => {
-    instance = module.exports;
-    new Program().start(true);
-  });

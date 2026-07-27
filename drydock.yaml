@@ -1,0 +1,17 @@
+# drydock.yaml — Drydock deploy manifest. Replaces render.yaml.
+# Drydock reads this to build, run, and provision your app. Edit here or in
+# the portal (portal writes win on the next "Re-commit"). Secrets live in the
+# portal (SSM), never in this file.
+name: wireworld
+kind: static          # ssr | static
+runtime: bun        # bun | node
+port: 3000
+memory: 128        # MiB soft reservation
+rootDir: web       # app lives in this repo subdirectory
+build: bun run build
+outputDir: dist    # built assets served as static files
+database: false      # provision Postgres + DATABASE_URL
+prisma: false        # prisma generate on build, db push predeploy
+domains:
+  - wireworld.dested.com
+dnsZone: dested.com

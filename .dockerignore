@@ -1,0 +1,8 @@
+# Build context for the Drydock image is the repo root, but only web/ is built.
+.git
+.github
+**/node_modules
+**/dist
+csharp
+deno-gpu
+assembly-script
